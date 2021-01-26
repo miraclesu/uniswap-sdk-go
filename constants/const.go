@@ -19,6 +19,10 @@ const (
 	RoundUp
 )
 
+const (
+	Decimals18 = 18
+)
+
 var (
 	MinimumLiquidity = big.NewInt(1000)
 

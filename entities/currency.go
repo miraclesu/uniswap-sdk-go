@@ -11,7 +11,7 @@ import (
  * The only instance of the base class `Currency`.
  */
 var (
-	ETHER, _ = newCurrency(18, "ETH", "Ether")
+	ETHER, _ = newCurrency(constants.Decimals18, "ETH", "Ether")
 )
 
 /**

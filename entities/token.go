@@ -14,7 +14,7 @@ var (
 	ErrDiffChainID = fmt.Errorf("diff chain id")
 	ErrSameAddrss  = fmt.Errorf("same address")
 
-	_WETHCurrency, _ = newCurrency(18, "WETH", "Wrapped Ether")
+	_WETHCurrency, _ = newCurrency(constants.Decimals18, "WETH", "Wrapped Ether")
 
 	WETH = map[constants.ChainID]*Token{
 		constants.Mainnet: {

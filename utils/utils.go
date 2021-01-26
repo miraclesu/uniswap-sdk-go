@@ -18,6 +18,6 @@ func ValidateSolidityTypeInstance(value *big.Int, t constants.SolidityType) erro
 
 // warns if addresses are not checksummed
 func ValidateAndParseAddress(address string) common.Address {
-	// TODO print warns if adderss is not checksummed
+	// TODO print warns if address is not checksummed
 	return common.HexToAddress(address)
 }
