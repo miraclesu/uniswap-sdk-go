@@ -12,6 +12,7 @@ import (
 
 var (
 	ErrDiffChainID = fmt.Errorf("diff chain id")
+	ErrDiffToken   = fmt.Errorf("diff token")
 	ErrSameAddrss  = fmt.Errorf("same address")
 
 	_WETHCurrency, _ = newCurrency(constants.Decimals18, "WETH", "Wrapped Ether")
