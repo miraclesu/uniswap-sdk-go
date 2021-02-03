@@ -20,7 +20,9 @@ const (
 )
 
 const (
-	Decimals18 = 18
+	Decimals18  = 18
+	Univ2Symbol = "UNI-V2"
+	Univ2Name   = "Uniswap V2"
 )
 
 var (
