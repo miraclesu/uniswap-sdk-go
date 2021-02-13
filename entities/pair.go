@@ -59,10 +59,41 @@ func NewPair(tokenAmountA, tokenAmountB *TokenAmount) (*Pair, error) {
 		return nil, err
 	}
 
-	pair.LiquidityToken, err = NewToken(tokenAmountA.ChainID, address, constants.Decimals18, constants.Univ2Symbol, constants.Univ2Name)
+	pair.LiquidityToken, err = NewToken(tokenAmountA.Token.ChainID, address, constants.Decimals18, constants.Univ2Symbol, constants.Univ2Name)
 	return pair, err
 }
 
 func (p *Pair) GetAddress() (string, error) {
-	return _PairAddressCache.GetAddress(p.TokenAmounts[0].Address.String(), p.TokenAmounts[1].Address.String())
+	return _PairAddressCache.GetAddress(p.TokenAmounts[0].Token.Address.String(), p.TokenAmounts[1].Token.Address.String())
+}
+
+/**
+ * Returns true if the token is either token0 or token1
+ * @param token to check
+ */
+func (p *Pair) InvolvesToken(token *Token) bool {
+	return token.Equals(p.TokenAmounts[0].Token) || token.Equals(p.TokenAmounts[1].Token)
+}
+
+/**
+ * Returns the chain ID of the tokens in the pair.
+ */
+func (p *Pair) ChainID() constants.ChainID {
+	return p.Token0().ChainID
+}
+
+func (p *Pair) Token0() *Token {
+	return p.TokenAmounts[0].Token
+}
+
+func (p *Pair) Token1() *Token {
+	return p.TokenAmounts[1].Token
+}
+
+func (p *Pair) Reserve0() *TokenAmount {
+	return p.TokenAmounts[0]
+}
+
+func (p *Pair) Reserve1() *TokenAmount {
+	return p.TokenAmounts[1]
 }

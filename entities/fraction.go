@@ -36,3 +36,8 @@ func (f *Fraction) Remainder() *Fraction {
 func (f *Fraction) Invert() *Fraction {
 	return NewFraction(f.Denominator, f.Numerator)
 }
+
+func (f *Fraction) Multiply(other *Fraction) {
+	f.Numerator.Mul(f.Numerator, other.Numerator)
+	f.Denominator.Mul(f.Denominator, other.Denominator)
+}

@@ -3,8 +3,8 @@ package entities
 import "math/big"
 
 type TokenAmount struct {
-	*Token
 	*CurrencyAmount
+	Token *Token
 }
 
 // amount _must_ be raw, i.e. in the native representation

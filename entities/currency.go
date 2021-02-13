@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"fmt"
 	"math/big"
 
 	"github.com/miraclesu/uniswap-sdk-go/constants"
@@ -12,6 +13,10 @@ import (
  */
 var (
 	ETHER, _ = newCurrency(constants.Decimals18, "ETH", "Ether")
+)
+
+var (
+	ErrInvalidCurrency = fmt.Errorf("diff currency")
 )
 
 /**
@@ -39,4 +44,9 @@ func newCurrency(decimals int, symbol, name string) (*Currency, error) {
 		Symbol:   symbol,
 		Name:     name,
 	}, nil
+}
+
+func (c *Currency) Equals(other *Currency) bool {
+	return c == other ||
+		(c.Decimals == other.Decimals && c.Symbol == other.Symbol && c.Name == other.Name)
 }
