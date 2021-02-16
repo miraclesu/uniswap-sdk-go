@@ -1,7 +1,10 @@
 package entities
 
 import (
+	"fmt"
 	"math/big"
+
+	"github.com/shopspring/decimal"
 
 	"github.com/miraclesu/uniswap-sdk-go/constants"
 )
@@ -40,4 +43,17 @@ func (f *Fraction) Invert() *Fraction {
 func (f *Fraction) Multiply(other *Fraction) {
 	f.Numerator.Mul(f.Numerator, other.Numerator)
 	f.Denominator.Mul(f.Denominator, other.Denominator)
+}
+
+// NOTE: format, rounding
+// TODO
+func (f *Fraction) ToSignificant(significantDigits uint) string {
+	d := decimal.NewFromBigInt(big.NewInt(0).Div(f.Numerator, f.Denominator), 0)
+	return fmt.Sprintf("%v", d)
+}
+
+// TODO
+func (f *Fraction) ToFixed(decimalPlaces uint) string {
+	d := big.NewInt(0).Div(f.Numerator, f.Denominator)
+	return fmt.Sprintf("%v", d)
 }

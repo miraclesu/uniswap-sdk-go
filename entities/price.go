@@ -49,6 +49,19 @@ func NewPrice(baseCurrency, quoteCurrency *Currency, denominator, numerator *big
 	}
 }
 
+func (p *Price) Raw() *Fraction {
+	return p.Fraction
+}
+
+func (p *Price) Adjusted() *Fraction {
+	p.Fraction.Multiply(p.Scalar)
+	return p.Fraction
+}
+
+func (p *Price) Invert() {
+	p.BaseCurrency, p.QuoteCurrency = p.QuoteCurrency, p.BaseCurrency
+}
+
 func (p *Price) Multiply(other *Price) error {
 	if !p.QuoteCurrency.Equals(other.BaseCurrency) {
 		return ErrInvalidCurrency
@@ -57,4 +70,17 @@ func (p *Price) Multiply(other *Price) error {
 	p.Fraction.Multiply(other.Fraction)
 	p.QuoteCurrency = other.QuoteCurrency
 	return nil
+}
+
+// performs floor division on overflow
+func (p *Price) Quote(currencyAmount *CurrencyAmount) {
+	// TODO
+}
+
+func (p *Price) ToSignificant(significantDigits uint) string {
+	return p.Adjusted().ToSignificant(significantDigits)
+}
+
+func (p *Price) ToFixed(decimalPlaces uint) string {
+	return p.Adjusted().ToFixed(decimalPlaces)
 }

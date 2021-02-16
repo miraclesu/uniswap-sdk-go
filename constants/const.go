@@ -8,13 +8,14 @@ import (
 
 // TradeType
 const (
-	ExactInput = iota + 1
+	ExactInput = iota
 	ExactOutput
 )
 
-// Rounding
+type Rounding int
+
 const (
-	RoundDown = iota + 1
+	RoundDown Rounding = iota
 	RoundHalfUp
 	RoundUp
 )
