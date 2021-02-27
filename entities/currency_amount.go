@@ -1,10 +1,16 @@
 package entities
 
 import (
+	"errors"
 	"math/big"
 
 	"github.com/miraclesu/uniswap-sdk-go/constants"
 	"github.com/miraclesu/uniswap-sdk-go/utils"
+)
+
+var (
+	ErrInsufficientReserves    = errors.New("doesn't have insufficient reserves")
+	ErrInsufficientInputAmount = errors.New("the input amount insufficient reserves")
 )
 
 type CurrencyAmount struct {
