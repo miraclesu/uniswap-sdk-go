@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"fmt"
 	"math/big"
 	"sync"
 
@@ -12,6 +13,9 @@ var (
 		lk:      new(sync.RWMutex),
 		address: make(map[string]map[string]string, 16),
 	}
+
+	ErrInvalidLiquidity = fmt.Errorf("invalid liquidity")
+	ErrInvalidKLast     = fmt.Errorf("invalid kLast")
 )
 
 type TokenAmounts [2]*TokenAmount
@@ -153,10 +157,10 @@ func (p *Pair) GetOutputAmount(inputAmount *TokenAmount) (*TokenAmount, *Pair, e
 		return nil, nil, ErrInsufficientReserves
 	}
 
-	inputAmountWithFee := big.NewInt(1).Mul(inputAmount.Raw(), constants.B997)
-	numerator := big.NewInt(1).Mul(inputAmountWithFee, outputReserve.Raw())
-	denominator := big.NewInt(1).Add(big.NewInt(1).Mul(inputAmount.Raw(), constants.B1000), inputAmountWithFee)
-	outputAmount, err := NewTokenAmount(token, big.NewInt(1).Div(numerator, denominator))
+	inputAmountWithFee := big.NewInt(0).Mul(inputAmount.Raw(), constants.B997)
+	numerator := big.NewInt(0).Mul(inputAmountWithFee, outputReserve.Raw())
+	denominator := big.NewInt(0).Add(big.NewInt(0).Mul(inputAmount.Raw(), constants.B1000), inputAmountWithFee)
+	outputAmount, err := NewTokenAmount(token, big.NewInt(0).Div(numerator, denominator))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -194,11 +198,11 @@ func (p *Pair) GetInputAmount(outputAmount *TokenAmount) (*TokenAmount, *Pair, e
 		return nil, nil, ErrInsufficientReserves
 	}
 
-	numerator := big.NewInt(1).Mul(inputReserve.Raw(), outputAmount.Raw())
+	numerator := big.NewInt(0).Mul(inputReserve.Raw(), outputAmount.Raw())
 	numerator.Mul(numerator, constants.B1000)
-	denominator := big.NewInt(1).Sub(outputReserve.Raw(), outputAmount.Raw())
+	denominator := big.NewInt(0).Sub(outputReserve.Raw(), outputAmount.Raw())
 	denominator.Mul(denominator, constants.B997)
-	amount := big.NewInt(1).Div(numerator, denominator)
+	amount := big.NewInt(0).Div(numerator, denominator)
 	amount.Add(amount, constants.One)
 	inputAmount, err := NewTokenAmount(token, amount)
 	if err != nil {
@@ -218,4 +222,93 @@ func (p *Pair) GetInputAmount(outputAmount *TokenAmount) (*TokenAmount, *Pair, e
 		return nil, nil, err
 	}
 	return outputAmount, pair, nil
+}
+
+func (p *Pair) GetLiquidityMinted(totalSupply, tokenAmountA, tokenAmountB *TokenAmount) (*TokenAmount, error) {
+	if !p.LiquidityToken.Equals(totalSupply.Token) {
+		return nil, ErrDiffToken
+	}
+
+	tokenAmounts, err := NewTokenAmounts(tokenAmountA, tokenAmountB)
+	if err != nil {
+		return nil, err
+	}
+	if !(tokenAmounts[0].Token.Equals(p.Token0()) && tokenAmounts[1].Token.Equals(p.Token1())) {
+		return nil, ErrDiffToken
+	}
+
+	var liquidity *big.Int
+	if totalSupply.Raw().Cmp(constants.Zero) == 0 {
+		liquidity = big.NewInt(0).Mul(tokenAmounts[0].Raw(), tokenAmounts[1].Raw())
+		liquidity.Sqrt(liquidity)
+		liquidity.Sub(liquidity, constants.MinimumLiquidity)
+	} else {
+		amount0 := big.NewInt(0).Mul(tokenAmounts[0].Raw(), totalSupply.Raw())
+		amount0.Div(amount0, p.Reserve0().Raw())
+		amount1 := big.NewInt(0).Mul(tokenAmounts[1].Raw(), totalSupply.Raw())
+		amount1.Div(amount1, p.Reserve1().Raw())
+		liquidity = amount0
+		if liquidity.Cmp(amount1) > 0 {
+			liquidity = amount1
+		}
+	}
+
+	if liquidity.Cmp(constants.Zero) <= 0 {
+		return nil, ErrInsufficientInputAmount
+	}
+
+	return NewTokenAmount(p.LiquidityToken, liquidity)
+}
+
+func (p *Pair) GetLiquidityValue(token *Token, totalSupply, liquidity *TokenAmount, feeOn bool, kLast *big.Int) (*TokenAmount, error) {
+	if !p.InvolvesToken(token) || !p.LiquidityToken.Equals(totalSupply.Token) || !p.LiquidityToken.Equals(liquidity.Token) {
+		return nil, ErrDiffToken
+	}
+	if liquidity.Raw().Cmp(totalSupply.Raw()) > 0 {
+		return nil, ErrInvalidLiquidity
+	}
+
+	totalSupplyAdjusted, err := p.adjustTotalSupply(totalSupply, feeOn, kLast)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenAmount, err := p.ReserveOf(token)
+	if err != nil {
+		return nil, err
+	}
+
+	amount := big.NewInt(0).Mul(liquidity.Raw(), tokenAmount.Raw())
+	amount.Div(amount, totalSupplyAdjusted.Raw())
+	return NewTokenAmount(token, amount)
+}
+
+func (p *Pair) adjustTotalSupply(totalSupply *TokenAmount, feeOn bool, kLast *big.Int) (*TokenAmount, error) {
+	if !feeOn {
+		return totalSupply, nil
+	}
+
+	if kLast == nil {
+		return nil, ErrInvalidKLast
+	}
+	if kLast.Cmp(constants.Zero) == 0 {
+		return totalSupply, nil
+	}
+
+	rootK := big.NewInt(0).Mul(p.Reserve0().Raw(), p.Reserve1().Raw())
+	rootK.Sqrt(rootK)
+	rootKLast := big.NewInt(0).Sqrt(kLast)
+	if rootK.Cmp(rootKLast) <= 0 {
+		return totalSupply, nil
+	}
+
+	numerator := big.NewInt(0).Sub(rootK, rootKLast)
+	numerator.Mul(numerator, totalSupply.Raw())
+	denominator := big.NewInt(0).Mul(rootK, constants.Five)
+	denominator.Add(denominator, rootKLast)
+	tokenAmount, err := NewTokenAmount(p.LiquidityToken, numerator.Div(numerator, denominator))
+	if err != nil {
+		return nil, err
+	}
+	return totalSupply.Add(tokenAmount)
 }
