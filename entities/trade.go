@@ -1,0 +1,144 @@
+package entities
+
+import (
+	"github.com/miraclesu/uniswap-sdk-go/constants"
+)
+
+/**
+ * Represents a trade executed against a list of pairs.
+ * Does not account for slippage, i.e. trades that front run this trade and move the price.
+ */
+type Trade struct {
+	/**
+	 * The route of the trade, i.e. which pairs the trade goes through.
+	 */
+	route *Route
+	/**
+	 * The type of the trade, either exact in or exact out.
+	 */
+	tradeType constants.TradeType
+	/**
+	 * The input amount for the trade assuming no slippage.
+	 */
+	inputAmount *TokenAmount
+	/**
+	 * The output amount for the trade assuming no slippage.
+	 */
+	outputAmount *TokenAmount
+	/**
+	 * The price expressed in terms of output amount/input amount.
+	 */
+	executionPrice *Price
+	/**
+	 * The mid price after the trade executes assuming no slippage.
+	 */
+	nextMidPrice *Price
+	/**
+	 * The percent difference between the mid price before the trade and the trade execution price.
+	 */
+	priceImpact *Percent
+}
+
+/**
+ * Constructs an exact in trade with the given amount in and route
+ * @param route route of the exact in trade
+ * @param amountIn the amount being passed in
+ */
+func ExactIn(route *Route, amountIn *CurrencyAmount) *Trade {
+	return nil
+	// return new Trade(route, amountIn, TradeType.EXACT_INPUT)
+}
+
+func NewTrade(route *Route, amount *TokenAmount, tradeType constants.TradeType) (*Trade, error) {
+	amounts := make([]*TokenAmount, len(route.Path))
+	nextPairs := make([]*Pair, len(route.Pairs))
+
+	if tradeType == constants.ExactInput {
+		if !route.Input.Equals(amount.Token) {
+			return nil, ErrDiffToken
+		}
+
+		amounts[0] = amount
+		for i := 0; i < len(route.Path)-1; i++ {
+			outputAmount, nextPair, err := route.Pairs[i].GetOutputAmount(amounts[i])
+			if err != nil {
+				return nil, err
+			}
+			amounts[i+1] = outputAmount
+			nextPairs[i] = nextPair
+		}
+	} else {
+		if !route.Output.Equals(amount.Token) {
+			return nil, ErrDiffToken
+		}
+
+		amounts[len(amounts)-1] = amount
+		for i := len(route.Path) - 1; i > 0; i-- {
+			inputAmount, nextPair, err := route.Pairs[i-1].GetInputAmount(amounts[i])
+			if err != nil {
+				return nil, err
+			}
+			amounts[i-1] = inputAmount
+			nextPairs[i-1] = nextPair
+		}
+	}
+
+	route, err := NewRoute(nextPairs, route.Input, nil)
+	if err != nil {
+		return nil, err
+	}
+	nextMidPrice, err := NewPriceFromRoute(route)
+	if err != nil {
+		return nil, err
+	}
+	inputAmount := amount
+	if tradeType == constants.ExactOutput {
+		inputAmount = amounts[0]
+		if route.Input.Currency.Equals(ETHER) {
+			inputAmount = wrappedAmount(inputAmount.CurrencyAmount, route.ChainID())
+		}
+	}
+	outputAmount := amount
+	if tradeType == constants.ExactInput {
+		outputAmount = amounts[len(amounts)-1]
+		if route.Output.Currency.Equals(ETHER) {
+			outputAmount = wrappedAmount(outputAmount.CurrencyAmount, route.ChainID())
+		}
+	}
+	price := NewPrice(inputAmount.Currency, outputAmount.Currency, inputAmount.Raw(), outputAmount.Raw())
+	return &Trade{
+		route:          route,
+		tradeType:      tradeType,
+		inputAmount:    inputAmount,
+		outputAmount:   outputAmount,
+		executionPrice: price,
+		nextMidPrice:   nextMidPrice,
+		priceImpact:    computePriceImpact(route.MidPrice, inputAmount, outputAmount),
+	}, nil
+}
+
+/**
+ * Given a currency amount and a chain ID, returns the equivalent representation as the token amount.
+ * In other words, if the currency is ETHER, returns the WETH token amount for the given chain. Otherwise, returns
+ * the input currency amount.
+ */
+func wrappedAmount(currencyAmount *CurrencyAmount, chainID constants.ChainID) *TokenAmount {
+	return &TokenAmount{
+		CurrencyAmount: currencyAmount,
+		Token:          WETH[chainID],
+	}
+}
+
+/**
+ * Returns the percent difference between the mid price and the execution price, i.e. price impact.
+ * @param midPrice mid price before the trade
+ * @param inputAmount the input amount of the trade
+ * @param outputAmount the output amount of the trade
+ */
+func computePriceImpact(midPrice *Price, inputAmount, outputAmount *TokenAmount) *Percent {
+	exactQuote := midPrice.Raw().Multiply(NewFraction(inputAmount.Raw(), nil))
+	slippage := exactQuote.Subtract(NewFraction(outputAmount.Raw(), nil)).Divide(exactQuote)
+	return &Percent{
+		Fraction: slippage,
+	}
+}

@@ -1,13 +1,23 @@
 package entities
 
-import "github.com/miraclesu/uniswap-sdk-go/constants"
+import (
+	"math/big"
+
+	"github.com/miraclesu/uniswap-sdk-go/constants"
+)
 
 var (
 	Percent100 = NewFraction(constants.B100, constants.One)
 )
 
 type Percent struct {
-	Fraction
+	*Fraction
+}
+
+func NewPercent(num, deno *big.Int) *Percent {
+	return &Percent{
+		Fraction: NewFraction(num, deno),
+	}
 }
 
 // NOTE: format, rounding

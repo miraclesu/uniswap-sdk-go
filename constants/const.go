@@ -6,9 +6,10 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 )
 
-// TradeType
+type TradeType int
+
 const (
-	ExactInput = iota
+	ExactInput TradeType = iota
 	ExactOutput
 )
 

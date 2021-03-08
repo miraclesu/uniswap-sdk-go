@@ -34,3 +34,11 @@ func NewCurrencyAmount(currency *Currency, amount *big.Int) (*CurrencyAmount, er
 func (c *CurrencyAmount) Raw() *big.Int {
 	return c.Numerator
 }
+
+/**
+ * Helper that calls the constructor with the ETHER currency
+ * @param amount ether amount in wei
+ */
+func NewEther(amount *big.Int) (*CurrencyAmount, error) {
+	return NewCurrencyAmount(ETHER, amount)
+}

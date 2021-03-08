@@ -30,6 +30,20 @@ func (f *Fraction) Quotient() *big.Int {
 	return z.Div(f.Numerator, f.Denominator)
 }
 
+func (f *Fraction) Subtract(other *Fraction) *Fraction {
+	if f.Denominator.Cmp(other.Denominator) == 0 {
+		return NewFraction(big.NewInt(0).Sub(f.Numerator, other.Numerator), f.Denominator)
+	}
+
+	return NewFraction(
+		big.NewInt(0).Sub(
+			big.NewInt(0).Mul(f.Numerator, other.Denominator),
+			big.NewInt(0).Mul(other.Numerator, f.Denominator),
+		),
+		big.NewInt(0).Mul(f.Denominator, other.Denominator),
+	)
+}
+
 // remainder after floor division
 func (f *Fraction) Remainder() *Fraction {
 	z := new(big.Int)
@@ -40,9 +54,18 @@ func (f *Fraction) Invert() *Fraction {
 	return NewFraction(f.Denominator, f.Numerator)
 }
 
-func (f *Fraction) Multiply(other *Fraction) {
-	f.Numerator.Mul(f.Numerator, other.Numerator)
-	f.Denominator.Mul(f.Denominator, other.Denominator)
+func (f *Fraction) Multiply(other *Fraction) *Fraction {
+	return NewFraction(
+		big.NewInt(0).Mul(f.Numerator, other.Numerator),
+		big.NewInt(0).Mul(f.Denominator, other.Denominator),
+	)
+}
+
+func (f *Fraction) Divide(other *Fraction) *Fraction {
+	return NewFraction(
+		big.NewInt(0).Mul(f.Numerator, other.Denominator),
+		big.NewInt(0).Mul(f.Denominator, other.Numerator),
+	)
 }
 
 // NOTE: format, rounding
