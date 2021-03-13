@@ -9,6 +9,10 @@ import (
 	"github.com/miraclesu/uniswap-sdk-go/constants"
 )
 
+var (
+	ZeroFraction = NewFraction(constants.Zero, nil)
+)
+
 type Fraction struct {
 	Numerator   *big.Int
 	Denominator *big.Int

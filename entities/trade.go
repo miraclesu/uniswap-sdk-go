@@ -1,7 +1,13 @@
 package entities
 
 import (
+	"fmt"
+
 	"github.com/miraclesu/uniswap-sdk-go/constants"
+)
+
+var (
+	ErrInvalidSlippageTolerance = fmt.Errorf("invalid slippage tolerance")
 )
 
 /**
@@ -44,9 +50,17 @@ type Trade struct {
  * @param route route of the exact in trade
  * @param amountIn the amount being passed in
  */
-func ExactIn(route *Route, amountIn *CurrencyAmount) *Trade {
-	return nil
-	// return new Trade(route, amountIn, TradeType.EXACT_INPUT)
+func ExactIn(route *Route, amountIn *TokenAmount) (*Trade, error) {
+	return NewTrade(route, amountIn, constants.ExactInput)
+}
+
+/**
+ * Constructs an exact out trade with the given amount out and route
+ * @param route route of the exact out trade
+ * @param amountOut the amount returned by the trade
+ */
+func ExactOut(route *Route, amountOut *TokenAmount) (*Trade, error) {
+	return NewTrade(route, amountOut, constants.ExactOutput)
 }
 
 func NewTrade(route *Route, amount *TokenAmount, tradeType constants.TradeType) (*Trade, error) {
@@ -141,4 +155,44 @@ func computePriceImpact(midPrice *Price, inputAmount, outputAmount *TokenAmount)
 	return &Percent{
 		Fraction: slippage,
 	}
+}
+
+/**
+ * Get the minimum amount that must be received from this trade for the given slippage tolerance
+ * @param slippageTolerance tolerance of unfavorable slippage from the execution price of this trade
+ */
+func (t *Trade) MinimumAmountOut(slippageTolerance *Percent) (*TokenAmount, error) {
+	if slippageTolerance.LessThan(ZeroFraction) {
+		return nil, ErrInvalidSlippageTolerance
+	}
+
+	if t.tradeType == constants.ExactOutput {
+		return t.outputAmount, nil
+	}
+
+	slippageAdjustedAmountOut := NewFraction(constants.One, nil).
+		Add(slippageTolerance.Fraction).
+		Invert().
+		Multiply(NewFraction(t.outputAmount.Raw(), nil)).Quotient()
+	return NewTokenAmount(t.outputAmount.Token, slippageAdjustedAmountOut)
+}
+
+/**
+ * Get the maximum amount in that can be spent via this trade for the given slippage tolerance
+ * @param slippageTolerance tolerance of unfavorable slippage from the execution price of this trade
+ */
+func (t *Trade) MaximumAmountIn(slippageTolerance *Percent) (*TokenAmount, error) {
+	if slippageTolerance.LessThan(ZeroFraction) {
+		return nil, ErrInvalidSlippageTolerance
+	}
+
+	if t.tradeType == constants.ExactInput {
+		return t.inputAmount, nil
+	}
+
+	slippageAdjustedAmountIn := NewFraction(constants.One, nil).
+		Add(slippageTolerance.Fraction).
+		Invert().
+		Multiply(NewFraction(t.inputAmount.Raw(), nil)).Quotient()
+	return NewTokenAmount(t.inputAmount.Token, slippageAdjustedAmountIn)
 }
