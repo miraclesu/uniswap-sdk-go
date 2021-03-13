@@ -69,7 +69,6 @@ linters:
     - gosimple
     - govet
     - ineffassign
-    - interfacer
     - lll
     - misspell
     - nakedret
@@ -106,6 +105,10 @@ issues:
     - linters:
         - gomnd
       source: " make()"
+
+    - path: entities/fraction.go
+      linters:
+        - dupl
 
 run:
   skip-dirs:

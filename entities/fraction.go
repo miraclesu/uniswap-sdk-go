@@ -30,6 +30,30 @@ func (f *Fraction) Quotient() *big.Int {
 	return z.Div(f.Numerator, f.Denominator)
 }
 
+// remainder after floor division
+func (f *Fraction) Remainder() *Fraction {
+	z := new(big.Int)
+	return NewFraction(z.Rem(f.Numerator, f.Denominator), f.Denominator)
+}
+
+func (f *Fraction) Invert() *Fraction {
+	return NewFraction(f.Denominator, f.Numerator)
+}
+
+func (f *Fraction) Add(other *Fraction) *Fraction {
+	if f.Denominator.Cmp(other.Denominator) == 0 {
+		return NewFraction(big.NewInt(0).Add(f.Numerator, other.Numerator), f.Denominator)
+	}
+
+	return NewFraction(
+		big.NewInt(0).Add(
+			big.NewInt(0).Mul(f.Numerator, other.Denominator),
+			big.NewInt(0).Mul(other.Numerator, f.Denominator),
+		),
+		big.NewInt(0).Mul(f.Denominator, other.Denominator),
+	)
+}
+
 func (f *Fraction) Subtract(other *Fraction) *Fraction {
 	if f.Denominator.Cmp(other.Denominator) == 0 {
 		return NewFraction(big.NewInt(0).Sub(f.Numerator, other.Numerator), f.Denominator)
@@ -44,14 +68,19 @@ func (f *Fraction) Subtract(other *Fraction) *Fraction {
 	)
 }
 
-// remainder after floor division
-func (f *Fraction) Remainder() *Fraction {
-	z := new(big.Int)
-	return NewFraction(z.Rem(f.Numerator, f.Denominator), f.Denominator)
+func (f *Fraction) LessThan(other *Fraction) bool {
+	return big.NewInt(0).Mul(f.Numerator, other.Denominator).
+		Cmp(big.NewInt(0).Mul(other.Numerator, f.Denominator)) < 0
 }
 
-func (f *Fraction) Invert() *Fraction {
-	return NewFraction(f.Denominator, f.Numerator)
+func (f *Fraction) EqualTo(other *Fraction) bool {
+	return big.NewInt(0).Mul(f.Numerator, other.Denominator).
+		Cmp(big.NewInt(0).Mul(other.Numerator, f.Denominator)) == 0
+}
+
+func (f *Fraction) GreaterThan(other *Fraction) bool {
+	return big.NewInt(0).Mul(f.Numerator, other.Denominator).
+		Cmp(big.NewInt(0).Mul(other.Numerator, f.Denominator)) > 0
 }
 
 func (f *Fraction) Multiply(other *Fraction) *Fraction {
