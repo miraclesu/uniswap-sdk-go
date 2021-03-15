@@ -45,6 +45,14 @@ type Trade struct {
 	priceImpact *Percent
 }
 
+func (t *Trade) InputAmount() *TokenAmount {
+	return t.inputAmount
+}
+
+func (t *Trade) OutputAmount() *TokenAmount {
+	return t.outputAmount
+}
+
 /**
  * Constructs an exact in trade with the given amount in and route
  * @param route route of the exact in trade
