@@ -39,9 +39,34 @@ type PairAddressCache struct {
 	address map[string]map[string]string
 }
 
-// TODO
 func (p *PairAddressCache) GetAddress(addressA, addressB string) (string, error) {
-	return "", nil
+	p.lk.RLock()
+	pairAddresses, ok := p.address[addressA]
+	if !ok {
+		p.lk.RUnlock()
+		p.lk.Lock()
+		defer p.lk.Unlock()
+		// TODO pair addr
+		addr := ""
+		p.address[addressA] = map[string]string{
+			addressB: addr,
+		}
+		return addr, nil
+	}
+
+	pairAddress, ok := pairAddresses[addressB]
+	if !ok {
+		p.lk.RUnlock()
+		p.lk.Lock()
+		defer p.lk.Unlock()
+		// TODO pair addr
+		addr := ""
+		pairAddresses[addressB] = addr
+		return addr, nil
+	}
+
+	p.lk.RUnlock()
+	return pairAddress, nil
 }
 
 type Pair struct {

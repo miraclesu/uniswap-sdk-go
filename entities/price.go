@@ -73,8 +73,12 @@ func (p *Price) Multiply(other *Price) error {
 }
 
 // performs floor division on overflow
-func (p *Price) Quote(currencyAmount *CurrencyAmount) {
-	// TODO
+func (p *Price) Quote(currencyAmount *CurrencyAmount) (*CurrencyAmount, error) {
+	if !p.BaseCurrency.Equals(currencyAmount.Currency) {
+		return nil, ErrInvalidCurrency
+	}
+
+	return NewEther(p.Fraction.Multiply(NewFraction(currencyAmount.Raw(), nil)).Quotient())
 }
 
 func (p *Price) ToSignificant(significantDigits uint) string {
