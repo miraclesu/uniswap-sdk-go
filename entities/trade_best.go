@@ -130,7 +130,7 @@ func BestTradeExactIn(
 	currentPairs []*Pair,
 	originalAmountIn *TokenAmount,
 	bestTrades []*Trade,
-) (sortedItems []*Trade, pop *Trade, err error) {
+) (sortedItems []*Trade, err error) {
 	if len(pairs) == 0 {
 		panic("PAIRS")
 	}
@@ -158,7 +158,7 @@ func BestTradeExactIn(
 			if err == ErrInsufficientInputAmount {
 				continue
 			}
-			return nil, nil, err
+			return nil, err
 		}
 
 		// we have arrived at the output token, so this is the final trade of one of the paths
@@ -166,16 +166,16 @@ func BestTradeExactIn(
 			var route *Route
 			route, err = NewRoute(append(currentPairs, pair), originalAmountIn.Token, currencyOut)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			var trade *Trade
 			trade, err = NewTrade(route, originalAmountIn, constants.ExactInput)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
-			bestTrades, pop, err = SortedInsert(bestTrades, trade, options.MaxNumResults, TradeComparator)
+			bestTrades, _, err = SortedInsert(bestTrades, trade, options.MaxNumResults, TradeComparator)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 			continue
 		}
@@ -184,7 +184,7 @@ func BestTradeExactIn(
 			pairsExcludingThisPair := append(pairs[:i], pairs[i+1:]...)
 			options.ReduceHops()
 			// otherwise, consider all the other paths that lead from this token as long as we have not exceeded maxHops
-			bestTrades, pop, err = BestTradeExactIn(
+			bestTrades, err = BestTradeExactIn(
 				pairsExcludingThisPair,
 				amountOut,
 				currencyOut,
@@ -194,10 +194,105 @@ func BestTradeExactIn(
 				bestTrades,
 			)
 			if err != nil {
-				return nil, nil, err
+				return nil, err
 			}
 		}
 	}
 
-	return bestTrades, pop, nil
+	return bestTrades, nil
+}
+
+/**
+ * similar to the above method but instead targets a fixed output amount
+ * given a list of pairs, and a fixed amount out, returns the top `maxNumResults` trades that go from an input token
+ * to an output token amount, making at most `maxHops` hops
+ * note this does not consider aggregation, as routes are linear. it's possible a better route exists by splitting
+ * the amount in among multiple routes.
+ * @param pairs the pairs to consider in finding the best trade
+ * @param currencyIn the currency to spend
+ * @param currencyAmountOut the exact amount of currency out
+ * @param maxNumResults maximum number of results to return
+ * @param maxHops maximum number of hops a returned trade can make, e.g. 1 hop goes through a single pair
+ * @param currentPairs used in recursion; the current list of pairs
+ * @param originalAmountOut used in recursion; the original value of the currencyAmountOut parameter
+ * @param bestTrades used in recursion; the current list of best trades
+ */
+func BestTradeExactOut(
+	pairs []*Pair,
+	currencyIn *Token,
+	currencyAmountOut *TokenAmount,
+	options *BestTradeOptions,
+	// used in recursion.
+	currentPairs []*Pair,
+	originalAmountOut *TokenAmount,
+	bestTrades []*Trade,
+) (sortedItems []*Trade, err error) {
+	if len(pairs) == 0 {
+		panic("PAIRS")
+	}
+	if options == nil || options.MaxHops <= 0 {
+		panic("MAX_HOPS")
+	}
+	if !(originalAmountOut == currencyAmountOut || len(currentPairs) > 0) {
+		panic("INVALID_RECURSION")
+	}
+
+	amountOut, tokenIn := currencyAmountOut, currencyIn
+	for i := 0; i < len(pairs); i++ {
+		pair := pairs[i]
+		// pair irrelevant
+		if !pair.Token0().Equals(amountOut.Token) && !pair.Token1().Equals(amountOut.Token) {
+			continue
+		}
+		if pair.Reserve0().EqualTo(ZeroFraction) || pair.Reserve1().EqualTo(ZeroFraction) {
+			continue
+		}
+
+		amountIn, _, err := pair.GetInputAmount(amountOut)
+		if err != nil {
+			// not enough liquidity in this pair
+			if err == ErrInsufficientInputAmount {
+				continue
+			}
+			return nil, err
+		}
+
+		// we have arrived at the input token, so this is the first trade of one of the paths
+		if amountIn.Token.Equals(tokenIn) {
+			var route *Route
+			route, err = NewRoute(append([]*Pair{pair}, currentPairs...), currencyIn, originalAmountOut.Token)
+			if err != nil {
+				return nil, err
+			}
+			var trade *Trade
+			trade, err = NewTrade(route, originalAmountOut, constants.ExactOutput)
+			if err != nil {
+				return nil, err
+			}
+			bestTrades, _, err = SortedInsert(bestTrades, trade, options.MaxNumResults, TradeComparator)
+			if err != nil {
+				return nil, err
+			}
+			continue
+		}
+
+		if options.MaxHops > 1 && len(pairs) > 1 {
+			pairsExcludingThisPair := append(pairs[:i], pairs[i+1:]...)
+			options.ReduceHops()
+			// otherwise, consider all the other paths that arrive at this token as long as we have not exceeded maxHops
+			bestTrades, err = BestTradeExactOut(
+				pairsExcludingThisPair,
+				currencyIn,
+				amountIn,
+				options,
+				append([]*Pair{pair}, currentPairs...),
+				originalAmountOut,
+				bestTrades,
+			)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	return bestTrades, nil
 }
