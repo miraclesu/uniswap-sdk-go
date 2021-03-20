@@ -5,13 +5,15 @@ import (
 	"math/big"
 	"sync"
 
+	"github.com/ethereum/go-ethereum/common"
+
 	"github.com/miraclesu/uniswap-sdk-go/constants"
 )
 
 var (
 	_PairAddressCache = &PairAddressCache{
 		lk:      new(sync.RWMutex),
-		address: make(map[string]map[string]string, 16),
+		address: make(map[common.Address]map[common.Address]common.Address, 16),
 	}
 
 	ErrInvalidLiquidity = fmt.Errorf("invalid liquidity")
@@ -36,10 +38,10 @@ func NewTokenAmounts(tokenAmountA, tokenAmountB *TokenAmount) (TokenAmounts, err
 type PairAddressCache struct {
 	lk *sync.RWMutex
 	// token0 address : token1 address : pair address
-	address map[string]map[string]string
+	address map[common.Address]map[common.Address]common.Address
 }
 
-func (p *PairAddressCache) GetAddress(addressA, addressB string) (string, error) {
+func (p *PairAddressCache) GetAddress(addressA, addressB common.Address) common.Address {
 	p.lk.RLock()
 	pairAddresses, ok := p.address[addressA]
 	if !ok {
@@ -47,11 +49,11 @@ func (p *PairAddressCache) GetAddress(addressA, addressB string) (string, error)
 		p.lk.Lock()
 		defer p.lk.Unlock()
 		// TODO pair addr
-		addr := ""
-		p.address[addressA] = map[string]string{
+		var addr common.Address
+		p.address[addressA] = map[common.Address]common.Address{
 			addressB: addr,
 		}
-		return addr, nil
+		return addr
 	}
 
 	pairAddress, ok := pairAddresses[addressB]
@@ -60,13 +62,13 @@ func (p *PairAddressCache) GetAddress(addressA, addressB string) (string, error)
 		p.lk.Lock()
 		defer p.lk.Unlock()
 		// TODO pair addr
-		addr := ""
+		var addr common.Address
 		pairAddresses[addressB] = addr
-		return addr, nil
+		return addr
 	}
 
 	p.lk.RUnlock()
-	return pairAddress, nil
+	return pairAddress
 }
 
 type Pair struct {
@@ -84,17 +86,12 @@ func NewPair(tokenAmountA, tokenAmountB *TokenAmount) (*Pair, error) {
 	pair := &Pair{
 		TokenAmounts: tokenAmounts,
 	}
-	address, err := pair.GetAddress()
-	if err != nil {
-		return nil, err
-	}
-
-	pair.LiquidityToken, err = NewToken(tokenAmountA.Token.ChainID, address, constants.Decimals18, constants.Univ2Symbol, constants.Univ2Name)
+	pair.LiquidityToken, err = NewToken(tokenAmountA.Token.ChainID, pair.GetAddress(), constants.Decimals18, constants.Univ2Symbol, constants.Univ2Name)
 	return pair, err
 }
 
-func (p *Pair) GetAddress() (string, error) {
-	return _PairAddressCache.GetAddress(p.TokenAmounts[0].Token.Address.String(), p.TokenAmounts[1].Token.Address.String())
+func (p *Pair) GetAddress() common.Address {
+	return _PairAddressCache.GetAddress(p.TokenAmounts[0].Token.Address, p.TokenAmounts[1].Token.Address)
 }
 
 /**

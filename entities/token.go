@@ -56,7 +56,7 @@ type Token struct {
 	common.Address
 }
 
-func NewToken(chainID constants.ChainID, address string, decimals int, symbol, name string) (*Token, error) {
+func NewToken(chainID constants.ChainID, address common.Address, decimals int, symbol, name string) (*Token, error) {
 	currency, err := newCurrency(decimals, symbol, name)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func NewToken(chainID constants.ChainID, address string, decimals int, symbol, n
 	return &Token{
 		Currency: currency,
 		ChainID:  chainID,
-		Address:  utils.ValidateAndParseAddress(address),
+		Address:  address,
 	}, nil
 }
 
