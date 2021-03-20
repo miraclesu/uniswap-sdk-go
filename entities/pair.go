@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 
 	"github.com/miraclesu/uniswap-sdk-go/constants"
 )
@@ -48,8 +49,7 @@ func (p *PairAddressCache) GetAddress(addressA, addressB common.Address) common.
 		p.lk.RUnlock()
 		p.lk.Lock()
 		defer p.lk.Unlock()
-		// TODO pair addr
-		var addr common.Address
+		addr := getCreate2Address(addressA, addressB)
 		p.address[addressA] = map[common.Address]common.Address{
 			addressB: addr,
 		}
@@ -61,14 +61,19 @@ func (p *PairAddressCache) GetAddress(addressA, addressB common.Address) common.
 		p.lk.RUnlock()
 		p.lk.Lock()
 		defer p.lk.Unlock()
-		// TODO pair addr
-		var addr common.Address
+		addr := getCreate2Address(addressA, addressB)
 		pairAddresses[addressB] = addr
 		return addr
 	}
 
 	p.lk.RUnlock()
 	return pairAddress
+}
+
+func getCreate2Address(addressA, addressB common.Address) common.Address {
+	var salt [32]byte
+	copy(salt[:], crypto.Keccak256(append(addressA.Bytes(), addressB.Bytes()...)))
+	return crypto.CreateAddress2(constants.FactoryAddress, salt, constants.InitCodeHash)
 }
 
 type Pair struct {
@@ -86,7 +91,8 @@ func NewPair(tokenAmountA, tokenAmountB *TokenAmount) (*Pair, error) {
 	pair := &Pair{
 		TokenAmounts: tokenAmounts,
 	}
-	pair.LiquidityToken, err = NewToken(tokenAmountA.Token.ChainID, pair.GetAddress(), constants.Decimals18, constants.Univ2Symbol, constants.Univ2Name)
+	pair.LiquidityToken, err = NewToken(tokenAmountA.Token.ChainID, pair.GetAddress(),
+		constants.Decimals18, constants.Univ2Symbol, constants.Univ2Name)
 	return pair, err
 }
 

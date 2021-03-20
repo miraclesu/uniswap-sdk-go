@@ -3,6 +3,7 @@ package constants
 import (
 	"math/big"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 )
 
@@ -54,4 +55,9 @@ var (
 		Uint8:   big.NewInt(0xff),
 		Uint256: math.MaxBig256,
 	}
+)
+
+var (
+	FactoryAddress = common.HexToAddress("0x9DEB29c9a4c7A88a3C0257393b7f3335338D9A9D")
+	InitCodeHash   = common.FromHex("0x69d637e77615df9f235f642acebbdad8963ef35c5523142078c9b8f9d0ceba7e")
 )
