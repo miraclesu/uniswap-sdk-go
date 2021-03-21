@@ -10,7 +10,7 @@ import (
 )
 
 func ValidateSolidityTypeInstance(value *big.Int, t constants.SolidityType) error {
-	if constants.Zero.Cmp(value) < 0 || value.Cmp(constants.SolidityTypeMaxima[t]) > 0 {
+	if value.Cmp(constants.Zero) < 0 || value.Cmp(constants.SolidityTypeMaxima[t]) > 0 {
 		return fmt.Errorf(`%v is not a %s`, value, t)
 	}
 	return nil
