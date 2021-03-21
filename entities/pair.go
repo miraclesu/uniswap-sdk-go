@@ -118,7 +118,6 @@ func (p *Pair) Token0Price() *Price {
 /**
  * Returns the current mid price of the pair in terms of token1, i.e. the ratio of reserve0 to reserve1
  */
-
 func (p *Pair) Token1Price() *Price {
 	return NewPrice(p.Token1().Currency, p.Token0().Currency, p.TokenAmounts[1].Raw(), p.TokenAmounts[0].Raw())
 }
