@@ -42,6 +42,8 @@ type PairAddressCache struct {
 	address map[common.Address]map[common.Address]common.Address
 }
 
+// GetAddress returns contract address
+// addressA < addressB
 func (p *PairAddressCache) GetAddress(addressA, addressB common.Address) common.Address {
 	p.lk.RLock()
 	pairAddresses, ok := p.address[addressA]
