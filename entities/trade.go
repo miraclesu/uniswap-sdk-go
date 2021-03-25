@@ -71,11 +71,16 @@ func ExactOut(route *Route, amountOut *TokenAmount) (*Trade, error) {
 	return NewTrade(route, amountOut, constants.ExactOutput)
 }
 
+// NewTrade creates a new trade
+// nolint gocyclo
 func NewTrade(route *Route, amount *TokenAmount, tradeType constants.TradeType) (*Trade, error) {
 	amounts := make([]*TokenAmount, len(route.Path))
 	nextPairs := make([]*Pair, len(route.Pairs))
 
 	if tradeType == constants.ExactInput {
+		if !route.Input.Currency.Equals(amount.Token.Currency) {
+			return nil, ErrInvalidCurrency
+		}
 		if !route.Input.Equals(amount.Token) {
 			return nil, ErrDiffToken
 		}
@@ -90,6 +95,9 @@ func NewTrade(route *Route, amount *TokenAmount, tradeType constants.TradeType) 
 			nextPairs[i] = nextPair
 		}
 	} else {
+		if !route.Output.Currency.Equals(amount.Token.Currency) {
+			return nil, ErrInvalidCurrency
+		}
 		if !route.Output.Equals(amount.Token) {
 			return nil, ErrDiffToken
 		}
@@ -145,9 +153,16 @@ func NewTrade(route *Route, amount *TokenAmount, tradeType constants.TradeType) 
  * the input currency amount.
  */
 func wrappedAmount(currencyAmount *CurrencyAmount, chainID constants.ChainID) *TokenAmount {
+	// TODO: returns an error maybe better
+	if !currencyAmount.Currency.Equals(ETHER) {
+		panic(ErrInvalidCurrency)
+	}
+
+	token := WETH[chainID]
+	ca, _ := NewCurrencyAmount(token.Currency, currencyAmount.Raw())
 	return &TokenAmount{
-		CurrencyAmount: currencyAmount,
-		Token:          WETH[chainID],
+		CurrencyAmount: ca,
+		Token:          token,
 	}
 }
 

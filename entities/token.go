@@ -97,3 +97,12 @@ func (t *Token) SortsBefore(other *Token) (bool, error) {
 
 	return strings.ToLower(t.Address.String()) < strings.ToLower(other.Address.String()), nil
 }
+
+// NewETHRToken creates a token that currency is ETH
+func NewETHRToken(chainID constants.ChainID, address common.Address) *Token {
+	return &Token{
+		Currency: ETHER,
+		ChainID:  chainID,
+		Address:  address,
+	}
+}
