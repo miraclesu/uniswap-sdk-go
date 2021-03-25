@@ -1,12 +1,28 @@
 package entities
 
-import "github.com/miraclesu/uniswap-sdk-go/constants"
+import (
+	"fmt"
+
+	"github.com/miraclesu/uniswap-sdk-go/constants"
+)
+
+var (
+	ErrInvalidOption    = fmt.Errorf("invalid maxHops")
+	ErrInvalidRecursion = fmt.Errorf("invalid recursion")
+)
 
 type BestTradeOptions struct {
 	// how many results to return
 	MaxNumResults int
 	// the maximum number of hops a trade should contain
 	MaxHops int
+}
+
+func NewDefaultBestTradeOptions() *BestTradeOptions {
+	return &BestTradeOptions{
+		MaxNumResults: 3,
+		MaxHops:       3,
+	}
 }
 
 func (o *BestTradeOptions) ReduceHops() {
@@ -132,13 +148,13 @@ func BestTradeExactIn(
 	bestTrades []*Trade,
 ) (sortedItems []*Trade, err error) {
 	if len(pairs) == 0 {
-		panic("PAIRS")
+		return nil, ErrInvalidPairs
 	}
 	if options == nil || options.MaxHops <= 0 {
-		panic("MAX_HOPS")
+		return nil, ErrInvalidOption
 	}
 	if !(originalAmountIn == currencyAmountIn || len(currentPairs) > 0) {
-		panic("INVALID_RECURSION")
+		return nil, ErrInvalidRecursion
 	}
 
 	amountIn, tokenOut := currencyAmountIn, currencyOut
@@ -228,13 +244,13 @@ func BestTradeExactOut(
 	bestTrades []*Trade,
 ) (sortedItems []*Trade, err error) {
 	if len(pairs) == 0 {
-		panic("PAIRS")
+		return nil, ErrInvalidPairs
 	}
 	if options == nil || options.MaxHops <= 0 {
-		panic("MAX_HOPS")
+		return nil, ErrInvalidOption
 	}
 	if !(originalAmountOut == currencyAmountOut || len(currentPairs) > 0) {
-		panic("INVALID_RECURSION")
+		return nil, ErrInvalidRecursion
 	}
 
 	amountOut, tokenIn := currencyAmountOut, currencyIn

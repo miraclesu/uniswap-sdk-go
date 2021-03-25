@@ -16,6 +16,7 @@ func TestTrade(t *testing.T) {
 	token2, _ := NewToken(constants.Mainnet, common.HexToAddress("0x0000000000000000000000000000000000000003"), 18, "t2", "")
 	token3, _ := NewToken(constants.Mainnet, common.HexToAddress("0x0000000000000000000000000000000000000004"), 18, "t3", "")
 
+	tokenAmount_0_100, _ := NewTokenAmount(token0, big.NewInt(100))
 	tokenAmount_0_1000, _ := NewTokenAmount(token0, big.NewInt(1000))
 	tokenAmount_1_1000, _ := NewTokenAmount(token1, big.NewInt(1000))
 	tokenAmount_1_1200, _ := NewTokenAmount(token1, big.NewInt(1200))
@@ -69,7 +70,6 @@ func TestTrade(t *testing.T) {
 
 		// can be constructed with ETHER as input for exact output
 		route, _ = NewRoute([]*Pair{pair_weth_0}, tokenETHR, token0)
-		tokenAmount_0_100, _ := NewTokenAmount(token0, big.NewInt(100))
 		trade, _ = NewTrade(route, tokenAmount_0_100, constants.ExactOutput)
 		{
 			expect := tokenETHR.Currency
@@ -117,6 +117,31 @@ func TestTrade(t *testing.T) {
 			expect := tokenETHR.Currency
 			output := trade.outputAmount.Currency
 			if !expect.Equals(output) {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+	}
+
+	// bestTradeExactIn
+	{
+		pairs := []*Pair{}
+		_, output := BestTradeExactIn(pairs, tokenAmount_0_100, token2, NewDefaultBestTradeOptions(),
+			nil, tokenAmount_0_100, nil)
+		//throws with empty pairs
+		{
+			expect := ErrInvalidPairs
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		pairs = []*Pair{pair_0_2}
+		_, output = BestTradeExactIn(pairs, tokenAmount_0_100, token2, &BestTradeOptions{},
+			nil, tokenAmount_0_100, nil)
+		// throws with max hops of 0
+		{
+			expect := ErrInvalidOption
+			if expect != output {
 				t.Errorf("expect[%+v], but got[%+v]", expect, output)
 			}
 		}
