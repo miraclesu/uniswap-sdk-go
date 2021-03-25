@@ -178,10 +178,19 @@ func (p *Pair) GetOutputAmount(inputAmount *TokenAmount) (*TokenAmount, *Pair, e
 		return nil, nil, ErrDiffToken
 	}
 
-	inputReserve, outputReserve, token := p.Reserve0(), p.Reserve1(), p.Token1()
-	if inputAmount.Token.Equals(p.Token1()) {
-		inputReserve, outputReserve, token = p.Reserve1(), p.Reserve0(), p.Token0()
+	inputReserve, err := p.ReserveOf(inputAmount.Token)
+	if err != nil {
+		return nil, nil, err
 	}
+	token := p.Token0()
+	if inputAmount.Token.Equals(p.Token0()) {
+		token = p.Token1()
+	}
+	outputReserve, err := p.ReserveOf(token)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	if inputReserve.Raw().Cmp(constants.Zero) == 0 || outputReserve.Raw().Cmp(constants.Zero) == 0 {
 		return nil, nil, ErrInsufficientReserves
 	}
@@ -217,9 +226,17 @@ func (p *Pair) GetInputAmount(outputAmount *TokenAmount) (*TokenAmount, *Pair, e
 		return nil, nil, ErrDiffToken
 	}
 
-	outputReserve, inputReserve, token := p.Reserve0(), p.Reserve1(), p.Token0()
+	outputReserve, err := p.ReserveOf(outputAmount.Token)
+	if err != nil {
+		return nil, nil, err
+	}
+	token := p.Token0()
 	if outputAmount.Token.Equals(p.Token0()) {
-		outputReserve, inputReserve, token = p.Reserve1(), p.Reserve0(), p.Token1()
+		token = p.Token1()
+	}
+	inputReserve, err := p.ReserveOf(token)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	if inputReserve.Raw().Cmp(constants.Zero) == 0 || outputReserve.Raw().Cmp(constants.Zero) == 0 ||
@@ -250,7 +267,7 @@ func (p *Pair) GetInputAmount(outputAmount *TokenAmount) (*TokenAmount, *Pair, e
 	if err != nil {
 		return nil, nil, err
 	}
-	return outputAmount, pair, nil
+	return inputAmount, pair, nil
 }
 
 func (p *Pair) GetLiquidityMinted(totalSupply, tokenAmountA, tokenAmountB *TokenAmount) (*TokenAmount, error) {
