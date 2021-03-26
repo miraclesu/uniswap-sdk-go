@@ -25,8 +25,11 @@ func NewDefaultBestTradeOptions() *BestTradeOptions {
 	}
 }
 
-func (o *BestTradeOptions) ReduceHops() {
-	o.MaxHops--
+func (o *BestTradeOptions) ReduceHops() *BestTradeOptions {
+	return &BestTradeOptions{
+		MaxNumResults: o.MaxNumResults,
+		MaxHops:       o.MaxHops - 1,
+	}
 }
 
 // minimal interface so the input output comparator may be shared across types
@@ -196,15 +199,16 @@ func BestTradeExactIn(
 			continue
 		}
 
+		// otherwise, consider all the other paths that lead from this token as long as we have not exceeded maxHops
 		if options.MaxHops > 1 && len(pairs) > 1 {
-			pairsExcludingThisPair := append(pairs[:i], pairs[i+1:]...)
-			options.ReduceHops()
-			// otherwise, consider all the other paths that lead from this token as long as we have not exceeded maxHops
+			pairsExcludingThisPair := make([]*Pair, len(pairs)-1)
+			copy(pairsExcludingThisPair, pairs[:i])
+			copy(pairsExcludingThisPair[i:], pairs[i+1:])
 			bestTrades, err = BestTradeExactIn(
 				pairsExcludingThisPair,
 				amountOut,
 				currencyOut,
-				options,
+				options.ReduceHops(),
 				append(currentPairs, pair),
 				originalAmountIn,
 				bestTrades,
@@ -292,15 +296,16 @@ func BestTradeExactOut(
 			continue
 		}
 
+		// otherwise, consider all the other paths that arrive at this token as long as we have not exceeded maxHops
 		if options.MaxHops > 1 && len(pairs) > 1 {
-			pairsExcludingThisPair := append(pairs[:i], pairs[i+1:]...)
-			options.ReduceHops()
-			// otherwise, consider all the other paths that arrive at this token as long as we have not exceeded maxHops
+			pairsExcludingThisPair := make([]*Pair, len(pairs)-1)
+			copy(pairsExcludingThisPair, pairs[:i])
+			copy(pairsExcludingThisPair[i:], pairs[i+1:])
 			bestTrades, err = BestTradeExactOut(
 				pairsExcludingThisPair,
 				currencyIn,
 				amountIn,
-				options,
+				options.ReduceHops(),
 				append([]*Pair{pair}, currentPairs...),
 				originalAmountOut,
 				bestTrades,
