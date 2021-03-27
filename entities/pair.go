@@ -178,6 +178,11 @@ func (p *Pair) GetOutputAmount(inputAmount *TokenAmount) (*TokenAmount, *Pair, e
 		return nil, nil, ErrDiffToken
 	}
 
+	if p.Reserve0().Raw().Cmp(constants.Zero) == 0 ||
+		p.Reserve1().Raw().Cmp(constants.Zero) == 0 {
+		return nil, nil, ErrInsufficientReserves
+	}
+
 	inputReserve, err := p.ReserveOf(inputAmount.Token)
 	if err != nil {
 		return nil, nil, err
@@ -191,13 +196,9 @@ func (p *Pair) GetOutputAmount(inputAmount *TokenAmount) (*TokenAmount, *Pair, e
 		return nil, nil, err
 	}
 
-	if inputReserve.Raw().Cmp(constants.Zero) == 0 || outputReserve.Raw().Cmp(constants.Zero) == 0 {
-		return nil, nil, ErrInsufficientReserves
-	}
-
 	inputAmountWithFee := big.NewInt(0).Mul(inputAmount.Raw(), constants.B997)
 	numerator := big.NewInt(0).Mul(inputAmountWithFee, outputReserve.Raw())
-	denominator := big.NewInt(0).Add(big.NewInt(0).Mul(inputAmount.Raw(), constants.B1000), inputAmountWithFee)
+	denominator := big.NewInt(0).Add(big.NewInt(0).Mul(inputReserve.Raw(), constants.B1000), inputAmountWithFee)
 	outputAmount, err := NewTokenAmount(token, big.NewInt(0).Div(numerator, denominator))
 	if err != nil {
 		return nil, nil, err
@@ -230,6 +231,12 @@ func (p *Pair) GetInputAmount(outputAmount *TokenAmount) (*TokenAmount, *Pair, e
 	if err != nil {
 		return nil, nil, err
 	}
+	if p.Reserve0().Raw().Cmp(constants.Zero) == 0 ||
+		p.Reserve1().Raw().Cmp(constants.Zero) == 0 ||
+		outputAmount.Raw().Cmp(outputReserve.Raw()) >= 0 {
+		return nil, nil, ErrInsufficientReserves
+	}
+
 	token := p.Token0()
 	if outputAmount.Token.Equals(p.Token0()) {
 		token = p.Token1()
@@ -237,11 +244,6 @@ func (p *Pair) GetInputAmount(outputAmount *TokenAmount) (*TokenAmount, *Pair, e
 	inputReserve, err := p.ReserveOf(token)
 	if err != nil {
 		return nil, nil, err
-	}
-
-	if inputReserve.Raw().Cmp(constants.Zero) == 0 || outputReserve.Raw().Cmp(constants.Zero) == 0 ||
-		outputAmount.Raw().Cmp(inputReserve.Raw()) >= 0 {
-		return nil, nil, ErrInsufficientReserves
 	}
 
 	numerator := big.NewInt(0).Mul(inputReserve.Raw(), outputAmount.Raw())
