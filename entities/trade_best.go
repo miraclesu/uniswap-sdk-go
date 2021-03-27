@@ -285,7 +285,7 @@ func BestTradeExactOut(
 		amountIn, _, err := pair.GetInputAmount(amountOut)
 		if err != nil {
 			// not enough liquidity in this pair
-			if err == ErrInsufficientInputAmount {
+			if err == ErrInsufficientReserves {
 				continue
 			}
 			return nil, err
