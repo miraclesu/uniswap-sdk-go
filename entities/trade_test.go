@@ -611,4 +611,292 @@ func TestTrade(t *testing.T) {
 			}
 		}
 	}
+
+	// #bestTradeExactOut
+	{
+		pairs := []*Pair{}
+		tokenAmount_1_100, _ := NewTokenAmount(token1, big.NewInt(100))
+		tokenAmount_2_100, _ := NewTokenAmount(token2, big.NewInt(100))
+		_, output := BestTradeExactOut(pairs, token2, tokenAmount_2_100,
+			nil, nil, nil, nil)
+		//throws with empty pairs
+		{
+			expect := ErrInvalidPairs
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		pairs = []*Pair{pair_0_2}
+		_, output = BestTradeExactOut(pairs, token0, tokenAmount_2_100,
+			&BestTradeOptions{MaxNumResults: 3}, nil, nil, nil)
+		// throws with max hops of 0
+		{
+			expect := ErrInvalidOption
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		pairs = []*Pair{pair_0_1, pair_0_2, pair_1_2}
+		result, _ := BestTradeExactOut(pairs, token0, tokenAmount_2_100,
+			nil, nil, nil, nil)
+		// provides best route
+		{
+			{
+				var tests = []struct {
+					expect int
+					output int
+				}{
+					{2, len(result)},
+					{1, len(result[0].route.Pairs)},
+					{2, len(result[1].route.Pairs)},
+				}
+				for i, test := range tests {
+					if test.expect != test.output {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, test.expect, test.output)
+					}
+				}
+			}
+			{
+				var tests = []struct {
+					expect []*Token
+					output []*Token
+				}{
+					{[]*Token{token0, token2}, result[0].route.Path},
+					{[]*Token{token0, token1, token2}, result[1].route.Path},
+				}
+				for i, test := range tests {
+					if len(test.expect) != len(test.output) {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, len(test.expect), (test.output))
+					}
+					for j := range test.expect {
+						if !test.expect[j].Equals(test.output[j]) {
+							t.Errorf("test #%d#%d: expect[%+v], but got[%+v]", i, j, test.expect[j], test.output[j])
+						}
+					}
+				}
+			}
+
+			{
+				tokenAmount_0_101, _ := NewTokenAmount(token0, big.NewInt(101))
+				tokenAmount_0_156, _ := NewTokenAmount(token0, big.NewInt(156))
+				var tests = []struct {
+					expect *TokenAmount
+					output *TokenAmount
+				}{
+					{result[0].inputAmount, tokenAmount_0_101},
+					{result[0].outputAmount, tokenAmount_2_100},
+					{result[1].inputAmount, tokenAmount_0_156},
+					{result[1].outputAmount, tokenAmount_2_100},
+				}
+				for i, test := range tests {
+					if !test.expect.Equals(test.output) {
+						t.Errorf("test #%d: expect[%+v], but got[%+v]", i, test.expect, test.output)
+					}
+				}
+			}
+		}
+
+		// doesnt throw for zero liquidity pairs
+		{
+			pairs := []*Pair{empty_pair_0_1}
+			results, err := BestTradeExactOut(pairs, token1, tokenAmount_1_100,
+				nil, nil, nil, nil)
+			if err != nil {
+				t.Fatalf("err should be nil, got[%+v]", err)
+			}
+			expect := 0
+			output := len(results)
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		tokenAmount, _ := NewTokenAmount(token2, big.NewInt(10))
+		result, _ = BestTradeExactOut(pairs, token0, tokenAmount,
+			&BestTradeOptions{MaxNumResults: 3, MaxHops: 1}, nil, nil, nil)
+		// respects maxHops
+		{
+			{
+				var tests = []struct {
+					expect int
+					output int
+				}{
+					{1, len(result)},
+					{1, len(result[0].route.Pairs)},
+				}
+				for i, test := range tests {
+					if test.expect != test.output {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, test.expect, test.output)
+					}
+				}
+			}
+			{
+				var tests = []struct {
+					expect []*Token
+					output []*Token
+				}{
+					{[]*Token{token0, token2}, result[0].route.Path},
+				}
+				for i, test := range tests {
+					if len(test.expect) != len(test.output) {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, len(test.expect), (test.output))
+					}
+					for j := range test.expect {
+						if !test.expect[j].Equals(test.output[j]) {
+							t.Errorf("test #%d#%d: expect[%+v], but got[%+v]", i, j, test.expect[j], test.output[j])
+						}
+					}
+				}
+			}
+		}
+
+		tokenAmount, _ = NewTokenAmount(token2, big.NewInt(1200))
+		result, _ = BestTradeExactOut(pairs, token0, tokenAmount,
+			nil, nil, nil, nil)
+		// insufficient liquidity
+		{
+			expect := 0
+			output := len(result)
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		tokenAmount, _ = NewTokenAmount(token2, big.NewInt(1050))
+		result, _ = BestTradeExactOut(pairs, token0, tokenAmount,
+			nil, nil, nil, nil)
+		// insufficient liquidity in one pair but not the other
+		{
+			expect := 1
+			output := len(result)
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		tokenAmount, _ = NewTokenAmount(token2, big.NewInt(10))
+		result, _ = BestTradeExactOut(pairs, token0, tokenAmount,
+			&BestTradeOptions{MaxNumResults: 1, MaxHops: 3}, nil, nil, nil)
+		// respects n
+		{
+			expect := 1
+			output := len(result)
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		pairs = []*Pair{pair_0_1, pair_0_3, pair_1_3}
+		result, _ = BestTradeExactOut(pairs, token0, tokenAmount,
+			nil, nil, nil, nil)
+		// no path
+		{
+			expect := 0
+			output := len(result)
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		pairs = []*Pair{pair_weth_0, pair_0_1, pair_0_3, pair_1_3}
+		tokenAmount, _ = NewTokenAmount(token3, big.NewInt(100))
+		result, _ = BestTradeExactOut(pairs, tokenETHER, tokenAmount,
+			nil, nil, nil, nil)
+		// works for ETHER currency input
+		{
+			{
+				expect := 2
+				output := len(result)
+				if expect != output {
+					t.Fatalf("expect[%+v], but got[%+v]", expect, output)
+				}
+			}
+			{
+				var tests = []struct {
+					expect *Currency
+					output *Currency
+				}{
+					{_WETHCurrency, result[0].inputAmount.Currency},
+					{token3.Currency, result[0].outputAmount.Currency},
+					{_WETHCurrency, result[1].inputAmount.Currency},
+					{token3.Currency, result[1].outputAmount.Currency},
+				}
+				for i, test := range tests {
+					if !test.expect.Equals(test.output) {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, test.expect, test.output)
+					}
+				}
+			}
+			{
+				var tests = []struct {
+					expect []*Token
+					output []*Token
+				}{
+					{[]*Token{tokenETHER, token0, token1, token3}, result[0].route.Path},
+					{[]*Token{tokenETHER, token0, token3}, result[1].route.Path},
+				}
+				for i, test := range tests {
+					if len(test.expect) != len(test.output) {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, len(test.expect), (test.output))
+					}
+					for j := range test.expect {
+						if !test.expect[j].Equals(test.output[j]) {
+							t.Errorf("test #%d#%d: expect[%+v], but got[%+v]", i, j, test.expect[j], test.output[j])
+						}
+					}
+				}
+			}
+		}
+
+		tokenAmount, _ = NewTokenAmount(tokenETHER, big.NewInt(100))
+		result, _ = BestTradeExactOut(pairs, token3, tokenAmount,
+			nil, nil, nil, nil)
+		// works for ETHER currency output
+		{
+			{
+				expect := 2
+				output := len(result)
+				if expect != output {
+					t.Fatalf("expect[%+v], but got[%+v]", expect, output)
+				}
+			}
+			{
+				var tests = []struct {
+					expect *Currency
+					output *Currency
+				}{
+					{token3.Currency, result[0].inputAmount.Currency},
+					{_WETHCurrency, result[0].outputAmount.Currency},
+					{token3.Currency, result[1].inputAmount.Currency},
+					{_WETHCurrency, result[1].outputAmount.Currency},
+				}
+				for i, test := range tests {
+					if !test.expect.Equals(test.output) {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, test.expect, test.output)
+					}
+				}
+			}
+			{
+				var tests = []struct {
+					expect []*Token
+					output []*Token
+				}{
+					{[]*Token{token3, token0, tokenETHER}, result[0].route.Path},
+					{[]*Token{token3, token1, token0, tokenETHER}, result[1].route.Path},
+				}
+				for i, test := range tests {
+					if len(test.expect) != len(test.output) {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, len(test.expect), (test.output))
+					}
+					for j := range test.expect {
+						if !test.expect[j].Equals(test.output[j]) {
+							t.Errorf("test #%d#%d: expect[%+v], but got[%+v]", i, j, test.expect[j], test.output[j])
+						}
+					}
+				}
+			}
+		}
+	}
 }
