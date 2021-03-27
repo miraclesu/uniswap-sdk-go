@@ -422,6 +422,98 @@ func TestTrade(t *testing.T) {
 				}
 			}
 		}
+	}
 
+	// #minimumAmountOut
+	{
+		// tradeType = EXACT_INPUT
+		route, _ := NewRoute([]*Pair{pair_0_1, pair_1_2}, token0, nil)
+		exactIn, _ := ExactIn(route, tokenAmount_0_100)
+
+		// throws if less than 0
+		{
+			percent := NewPercent(big.NewInt(-1), big.NewInt(100))
+			_, output := exactIn.MinimumAmountOut(percent)
+			expect := ErrInvalidSlippageTolerance
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+		// returns exact if 0
+		{
+			percent := NewPercent(big.NewInt(0), big.NewInt(100))
+			output, _ := exactIn.MinimumAmountOut(percent)
+			expect := exactIn.outputAmount
+			if !expect.Equals(output) {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+		// returns exact if nonzero
+		{
+			percent := NewPercent(big.NewInt(0), big.NewInt(100))
+			output, _ := exactIn.MinimumAmountOut(percent)
+			expect, _ := NewTokenAmount(token2, big.NewInt(69))
+			if !expect.Equals(output) {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+
+			percent = NewPercent(big.NewInt(5), big.NewInt(100))
+			output, _ = exactIn.MinimumAmountOut(percent)
+			expect, _ = NewTokenAmount(token2, big.NewInt(65))
+			if !expect.Equals(output) {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+
+			percent = NewPercent(big.NewInt(200), big.NewInt(100))
+			output, _ = exactIn.MinimumAmountOut(percent)
+			expect, _ = NewTokenAmount(token2, big.NewInt(23))
+			if !expect.Equals(output) {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		// tradeType = EXACT_OUTPUT
+		tokenAmount, _ := NewTokenAmount(token2, big.NewInt(100))
+		exactOut, _ := ExactOut(route, tokenAmount)
+
+		// throws if less than 0
+		{
+			percent := NewPercent(big.NewInt(-1), big.NewInt(100))
+			_, output := exactOut.MinimumAmountOut(percent)
+			expect := ErrInvalidSlippageTolerance
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+		// returns exact if 0
+		{
+			percent := NewPercent(big.NewInt(0), big.NewInt(100))
+			output, _ := exactOut.MinimumAmountOut(percent)
+			expect := exactOut.outputAmount
+			if !expect.Equals(output) {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+		// returns slippage amount if nonzero
+		{
+			percent := NewPercent(big.NewInt(0), big.NewInt(100))
+			output, _ := exactOut.MinimumAmountOut(percent)
+			expect, _ := NewTokenAmount(token2, big.NewInt(100))
+			if !expect.Equals(output) {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+
+			percent = NewPercent(big.NewInt(5), big.NewInt(100))
+			output, _ = exactOut.MinimumAmountOut(percent)
+			if !expect.Equals(output) {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+
+			percent = NewPercent(big.NewInt(200), big.NewInt(100))
+			output, _ = exactOut.MinimumAmountOut(percent)
+			if !expect.Equals(output) {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
 	}
 }
