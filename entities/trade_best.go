@@ -150,6 +150,13 @@ func BestTradeExactIn(
 	originalAmountIn *TokenAmount,
 	bestTrades []*Trade,
 ) (sortedItems []*Trade, err error) {
+	if originalAmountIn == nil {
+		originalAmountIn = currencyAmountIn
+	}
+	if options == nil {
+		options = NewDefaultBestTradeOptions()
+	}
+
 	if len(pairs) == 0 {
 		return nil, ErrInvalidPairs
 	}
@@ -247,6 +254,13 @@ func BestTradeExactOut(
 	originalAmountOut *TokenAmount,
 	bestTrades []*Trade,
 ) (sortedItems []*Trade, err error) {
+	if originalAmountOut == nil {
+		originalAmountOut = currencyAmountOut
+	}
+	if options == nil {
+		options = NewDefaultBestTradeOptions()
+	}
+
 	if len(pairs) == 0 {
 		return nil, ErrInvalidPairs
 	}
