@@ -215,7 +215,6 @@ func (t *Trade) MaximumAmountIn(slippageTolerance *Percent) (*TokenAmount, error
 
 	slippageAdjustedAmountIn := NewFraction(constants.One, nil).
 		Add(slippageTolerance.Fraction).
-		Invert().
 		Multiply(NewFraction(t.inputAmount.Raw(), nil)).Quotient()
 	return NewTokenAmount(t.inputAmount.Token, slippageAdjustedAmountIn)
 }
