@@ -35,3 +35,7 @@ func (t *TokenAmount) Subtract(other *TokenAmount) (*TokenAmount, error) {
 
 	return NewTokenAmount(t.Token, big.NewInt(0).Sub(t.Raw(), other.Raw()))
 }
+
+func (t *TokenAmount) Equals(other *TokenAmount) bool {
+	return t.Token.Equals(other.Token) && t.Fraction.EqualTo(other.Fraction)
+}
