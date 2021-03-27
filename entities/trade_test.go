@@ -31,9 +31,6 @@ func TestTrade(t *testing.T) {
 	pair_1_2, _ := NewPair(tokenAmount_1_1200, tokenAmount_2_1000)
 	pair_1_3, _ := NewPair(tokenAmount_1_1200, tokenAmount_3_1300)
 
-	_ = pair_0_3
-	_ = pair_1_3
-
 	// use WETH as ETHR
 	tokenETHR := WETH[constants.Mainnet]
 	tokenAmount_0_weth, _ := NewTokenAmount(tokenETHR, big.NewInt(1000))
@@ -122,8 +119,8 @@ func TestTrade(t *testing.T) {
 	// bestTradeExactIn
 	{
 		pairs := []*Pair{}
-		_, output := BestTradeExactIn(pairs, tokenAmount_0_100, token2, NewDefaultBestTradeOptions(),
-			nil, tokenAmount_0_100, nil)
+		_, output := BestTradeExactIn(pairs, tokenAmount_0_100, token2,
+			NewDefaultBestTradeOptions(), nil, tokenAmount_0_100, nil)
 		//throws with empty pairs
 		{
 			expect := ErrInvalidPairs
@@ -144,8 +141,8 @@ func TestTrade(t *testing.T) {
 		}
 
 		pairs = []*Pair{pair_0_1, pair_0_2, pair_1_2}
-		result, _ := BestTradeExactIn(pairs, tokenAmount_0_100, token2, NewDefaultBestTradeOptions(),
-			nil, tokenAmount_0_100, nil)
+		result, _ := BestTradeExactIn(pairs, tokenAmount_0_100, token2,
+			NewDefaultBestTradeOptions(), nil, tokenAmount_0_100, nil)
 		// provides best route
 		{
 			{
@@ -154,8 +151,8 @@ func TestTrade(t *testing.T) {
 					output int
 				}{
 					{2, len(result)},
-					{1, len(result[0].route.Pairs)}, // 0 -> 2 at 10:11
-					{2, len(result[1].route.Pairs)}, // 0 -> 1 -> 2 at 12:12:10
+					{1, len(result[0].route.Pairs)},
+					{2, len(result[1].route.Pairs)},
 				}
 				for i, test := range tests {
 					if test.expect != test.output {
@@ -200,6 +197,131 @@ func TestTrade(t *testing.T) {
 						t.Errorf("test #%d: expect[%+v], but got[%+v]", i, test.expect, test.output)
 					}
 				}
+			}
+		}
+
+		// doesnt throw for zero liquidity pairs
+		// throws with max hops of 0
+		{
+			pairs := []*Pair{empty_pair_0_1}
+			results, err := BestTradeExactIn(pairs, tokenAmount_0_100, token1,
+				NewDefaultBestTradeOptions(), nil, tokenAmount_0_100, nil)
+			if err != nil {
+				t.Fatalf("err should be nil, got[%+v]", err)
+			}
+			expect := 0
+			output := len(results)
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		tokenAmount, _ := NewTokenAmount(token0, big.NewInt(10))
+		result, _ = BestTradeExactIn(pairs, tokenAmount, token2,
+			&BestTradeOptions{MaxNumResults: 3, MaxHops: 1}, nil, tokenAmount, nil)
+		// respects maxHops
+		{
+			{
+				var tests = []struct {
+					expect int
+					output int
+				}{
+					{1, len(result)},
+					{1, len(result[0].route.Pairs)},
+				}
+				for i, test := range tests {
+					if test.expect != test.output {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, test.expect, test.output)
+					}
+				}
+			}
+			{
+				var tests = []struct {
+					expect []*Token
+					output []*Token
+				}{
+					{[]*Token{token0, token2}, result[0].route.Path},
+				}
+				for i, test := range tests {
+					if len(test.expect) != len(test.output) {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, len(test.expect), (test.output))
+					}
+					for j := range test.expect {
+						if !test.expect[j].Equals(test.output[j]) {
+							t.Errorf("test #%d#%d: expect[%+v], but got[%+v]", i, j, test.expect[j], test.output[j])
+						}
+					}
+				}
+			}
+		}
+
+		tokenAmount, _ = NewTokenAmount(token0, big.NewInt(1))
+		result, _ = BestTradeExactIn(pairs, tokenAmount, token2,
+			nil, nil, nil, nil)
+		// insufficient input for one pair
+		{
+			{
+				var tests = []struct {
+					expect int
+					output int
+				}{
+					{1, len(result)},
+					{1, len(result[0].route.Pairs)},
+				}
+				for i, test := range tests {
+					if test.expect != test.output {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, test.expect, test.output)
+					}
+				}
+			}
+			{
+				var tests = []struct {
+					expect []*Token
+					output []*Token
+				}{
+					{[]*Token{token0, token2}, result[0].route.Path},
+				}
+				for i, test := range tests {
+					if len(test.expect) != len(test.output) {
+						t.Fatalf("test #%d: expect[%+v], but got[%+v]", i, len(test.expect), (test.output))
+					}
+					for j := range test.expect {
+						if !test.expect[j].Equals(test.output[j]) {
+							t.Errorf("test #%d#%d: expect[%+v], but got[%+v]", i, j, test.expect[j], test.output[j])
+						}
+					}
+				}
+			}
+			{
+				expect, _ := NewTokenAmount(token2, big.NewInt(1))
+				output := result[0].outputAmount
+				if !expect.Equals(output) {
+					t.Errorf("expect[%+v], but got[%+v]", expect, output)
+				}
+			}
+		}
+
+		tokenAmount, _ = NewTokenAmount(token0, big.NewInt(10))
+		result, _ = BestTradeExactIn(pairs, tokenAmount, token2,
+			&BestTradeOptions{MaxNumResults: 1, MaxHops: 3}, nil, nil, nil)
+		// respects n
+		{
+			expect := 1
+			output := len(result)
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
+			}
+		}
+
+		pairs = []*Pair{pair_0_1, pair_0_3, pair_1_3}
+		result, _ = BestTradeExactIn(pairs, tokenAmount, token2,
+			&BestTradeOptions{MaxNumResults: 1, MaxHops: 3}, nil, nil, nil)
+		// respects n
+		{
+			expect := 0
+			output := len(result)
+			if expect != output {
+				t.Errorf("expect[%+v], but got[%+v]", expect, output)
 			}
 		}
 	}
