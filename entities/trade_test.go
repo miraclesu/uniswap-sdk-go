@@ -4,7 +4,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/ethereum/go-ethereum/common"
 
 	"github.com/miraclesu/uniswap-sdk-go/constants"
@@ -506,7 +505,6 @@ func TestTrade(t *testing.T) {
 			output, _ = exactOut.MaximumAmountIn(percent)
 			expect, _ = NewTokenAmount(token0, big.NewInt(163))
 			if !expect.Equals(output) {
-				spew.Dump(expect, output)
 				t.Errorf("expect[%+v], but got[%+v]", expect, output)
 			}
 
