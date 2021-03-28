@@ -124,16 +124,10 @@ func NewTrade(route *Route, amount *TokenAmount, tradeType constants.TradeType) 
 	inputAmount := amount
 	if tradeType == constants.ExactOutput {
 		inputAmount = amounts[0]
-		if route.Input.Currency.Equals(ETHER) {
-			inputAmount = wrappedAmount(inputAmount.CurrencyAmount, route.ChainID())
-		}
 	}
 	outputAmount := amount
 	if tradeType == constants.ExactInput {
 		outputAmount = amounts[len(amounts)-1]
-		if route.Output.Currency.Equals(ETHER) {
-			outputAmount = wrappedAmount(outputAmount.CurrencyAmount, route.ChainID())
-		}
 	}
 	price := NewPrice(inputAmount.Currency, outputAmount.Currency, inputAmount.Raw(), outputAmount.Raw())
 	return &Trade{
@@ -145,25 +139,6 @@ func NewTrade(route *Route, amount *TokenAmount, tradeType constants.TradeType) 
 		nextMidPrice:   nextMidPrice,
 		priceImpact:    computePriceImpact(route.MidPrice, inputAmount, outputAmount),
 	}, nil
-}
-
-/**
- * Given a currency amount and a chain ID, returns the equivalent representation as the token amount.
- * In other words, if the currency is ETHER, returns the WETH token amount for the given chain. Otherwise, returns
- * the input currency amount.
- */
-func wrappedAmount(currencyAmount *CurrencyAmount, chainID constants.ChainID) *TokenAmount {
-	// TODO: returns an error maybe better
-	if !currencyAmount.Currency.Equals(ETHER) {
-		panic(ErrInvalidCurrency)
-	}
-
-	token := WETH[chainID]
-	ca, _ := NewCurrencyAmount(token.Currency, currencyAmount.Raw())
-	return &TokenAmount{
-		CurrencyAmount: ca,
-		Token:          token,
-	}
 }
 
 /**

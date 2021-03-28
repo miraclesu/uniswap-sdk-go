@@ -106,9 +106,6 @@ issues:
         - gomnd
       source: " make()"
 
-    - path: entities/fraction.go
-      linters:
-        - dupl
     - linters:
         - gocyclo
       source: "BestTradeExact"

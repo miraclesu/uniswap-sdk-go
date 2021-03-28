@@ -44,6 +44,7 @@ func (f *Fraction) Invert() *Fraction {
 	return NewFraction(f.Denominator, f.Numerator)
 }
 
+// nolint
 func (f *Fraction) Add(other *Fraction) *Fraction {
 	if f.Denominator.Cmp(other.Denominator) == 0 {
 		return NewFraction(big.NewInt(0).Add(f.Numerator, other.Numerator), f.Denominator)
@@ -58,6 +59,7 @@ func (f *Fraction) Add(other *Fraction) *Fraction {
 	)
 }
 
+// nolint
 func (f *Fraction) Subtract(other *Fraction) *Fraction {
 	if f.Denominator.Cmp(other.Denominator) == 0 {
 		return NewFraction(big.NewInt(0).Sub(f.Numerator, other.Numerator), f.Denominator)
