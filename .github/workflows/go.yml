@@ -1,0 +1,33 @@
+name: Go
+
+on:
+  push:
+    branches: [ $default-branch ]
+  pull_request:
+    branches: [ $default-branch ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.15
+
+    - name: Lint
+      uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.35
+          args: --timeout=5m
+
+    - name: Test
+      run: make test
+
+    - name: Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}

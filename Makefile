@@ -16,7 +16,7 @@ lint:
 
 .PHONY: test
 test:
-	$(GO) test -race -cover -coverprofile=cover.out ./...
+	$(GO) test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 version:
 	@echo $(VERSION)
