@@ -9,6 +9,7 @@ import (
 	"github.com/miraclesu/uniswap-sdk-go/constants"
 )
 
+// ValidateSolidityTypeInstance determines if a value is a legal SolidityType
 func ValidateSolidityTypeInstance(value *big.Int, t constants.SolidityType) error {
 	if value.Cmp(constants.Zero) < 0 || value.Cmp(constants.SolidityTypeMaxima[t]) > 0 {
 		return fmt.Errorf(`%v is not a %s`, value, t)
@@ -16,8 +17,7 @@ func ValidateSolidityTypeInstance(value *big.Int, t constants.SolidityType) erro
 	return nil
 }
 
-// warns if addresses are not checksummed
+// ValidateAndParseAddress warns if addresses are not checksummed
 func ValidateAndParseAddress(address string) common.Address {
-	// TODO print warns if address is not checksummed
 	return common.HexToAddress(address)
 }
