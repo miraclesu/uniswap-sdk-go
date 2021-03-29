@@ -18,24 +18,24 @@ func TestGetAddress(t *testing.T) {
 		{
 			// CRO,USDC
 			[2]string{"0xa0b73e1ff0b80914ab6fe0444e65848c4c34450b", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"},
-			"0x35e8777ec43cb99e935588dcd0305268f06c1274",
+			"0xeafac2E662Ec23860836Da89d3711BFF0260CD8D",
 		},
 		{
 			// CRO,USDC
 			// cover cache
 			[2]string{"0xa0b73e1ff0b80914ab6fe0444e65848c4c34450b", "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"},
-			"0x35e8777ec43cb99e935588dcd0305268f06c1274",
+			"0xeafac2E662Ec23860836Da89d3711BFF0260CD8D",
 		},
 		{
 			// WBTC,DAI
 			[2]string{"0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", "0x6b175474e89094c44da98b954eedeac495271d0f"},
-			"0x7a53d28d5855a0addcd0b6cf4129dcef2d9c28e3",
+			"0x231B7589426Ffe1b75405526fC32aC09D44364c4",
 		},
 		{
 			// WBTC,AAVE
 			// cover cache
 			[2]string{"0x2260fac5e5542a773aa44fbcfedf7c193bc2c599", "0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9"},
-			"0xa3603484ebfa1675778ce2de02c0ce96678a4f34",
+			"0x48978eF5BeB2d69e27DeF9C046cEbE18Ab5708Ad",
 		},
 	}
 	for i, test := range tests {
@@ -68,7 +68,7 @@ func TestPair(t *testing.T) {
 	// returns the correct address
 	{
 		output := _PairAddressCache.GetAddress(DAI.Address, USDC.Address)
-		expect := "0xB5214eDee5741324a13539bcc207Bc549e2491FF"
+		expect := "0xAE461cA67B15dc8dc81CE7615e0320dA1A9aB8D5"
 		if output.String() != expect {
 			t.Errorf("expect[%+v], but got[%+v]", expect, output)
 		}

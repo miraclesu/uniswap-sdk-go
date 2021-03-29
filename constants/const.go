@@ -58,6 +58,6 @@ var (
 )
 
 var (
-	FactoryAddress = common.HexToAddress("0x9DEB29c9a4c7A88a3C0257393b7f3335338D9A9D")
-	InitCodeHash   = common.FromHex("0x69d637e77615df9f235f642acebbdad8963ef35c5523142078c9b8f9d0ceba7e")
+	FactoryAddress = common.HexToAddress("0x5C69bEe701ef814a2B6a3EDD4B1652CB9cc5aA6f")
+	InitCodeHash   = common.FromHex("0x96e8ac4277198ff8b6f785478aa9a39f403cb768dd02cbee326c3e7da348845f")
 )
