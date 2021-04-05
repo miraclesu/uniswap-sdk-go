@@ -16,12 +16,11 @@ var (
 )
 
 var (
+	// ErrInvalidCurrency diff currency error
 	ErrInvalidCurrency = fmt.Errorf("diff currency")
 )
 
-/**
- * A currency is any fungible financial instrument on Ethereum, including Ether and all ERC20 tokens.
- */
+// Currency is any fungible financial instrument on Ethereum, including Ether and all ERC20 tokens.
 type Currency struct {
 	Decimals int
 	Symbol   string
@@ -46,6 +45,7 @@ func newCurrency(decimals int, symbol, name string) (*Currency, error) {
 	}, nil
 }
 
+// Equals identifies whether A and B are equal
 func (c *Currency) Equals(other *Currency) bool {
 	return c == other ||
 		(c.Decimals == other.Decimals && c.Symbol == other.Symbol && c.Name == other.Name)

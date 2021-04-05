@@ -10,9 +10,11 @@ import (
 )
 
 var (
+	// ZeroFraction zero fraction instance
 	ZeroFraction = NewFraction(constants.Zero, nil)
 )
 
+// Fraction warps math franction
 type Fraction struct {
 	Numerator   *big.Int
 	Denominator *big.Int
@@ -20,6 +22,7 @@ type Fraction struct {
 	opts *number.Options
 }
 
+// NewFraction creates a fraction
 func NewFraction(num, deno *big.Int) *Fraction {
 	if deno == nil {
 		deno = constants.One
@@ -30,23 +33,25 @@ func NewFraction(num, deno *big.Int) *Fraction {
 	}
 }
 
-// performs floor division
+// Quotient performs floor division
 func (f *Fraction) Quotient() *big.Int {
 	z := new(big.Int)
 	return z.Div(f.Numerator, f.Denominator)
 }
 
-// remainder after floor division
+// Remainder remainder after floor division
 func (f *Fraction) Remainder() *Fraction {
 	z := new(big.Int)
 	return NewFraction(z.Rem(f.Numerator, f.Denominator), f.Denominator)
 }
 
+// Invert inverts a fraction
 func (f *Fraction) Invert() *Fraction {
 	return NewFraction(f.Denominator, f.Numerator)
 }
 
-// nolint
+// Add adds two fraction and returns a new fraction
+// nolint dupl
 func (f *Fraction) Add(other *Fraction) *Fraction {
 	if f.Denominator.Cmp(other.Denominator) == 0 {
 		return NewFraction(big.NewInt(0).Add(f.Numerator, other.Numerator), f.Denominator)
@@ -61,7 +66,8 @@ func (f *Fraction) Add(other *Fraction) *Fraction {
 	)
 }
 
-// nolint
+// Add subtracts two fraction and returns a new fraction
+// nolint dupl
 func (f *Fraction) Subtract(other *Fraction) *Fraction {
 	if f.Denominator.Cmp(other.Denominator) == 0 {
 		return NewFraction(big.NewInt(0).Sub(f.Numerator, other.Numerator), f.Denominator)
@@ -76,21 +82,25 @@ func (f *Fraction) Subtract(other *Fraction) *Fraction {
 	)
 }
 
+// LessThan identifies whether the caller is less than the other
 func (f *Fraction) LessThan(other *Fraction) bool {
 	return big.NewInt(0).Mul(f.Numerator, other.Denominator).
 		Cmp(big.NewInt(0).Mul(other.Numerator, f.Denominator)) < 0
 }
 
+// EqualTo identifies whether the caller is equal to the other
 func (f *Fraction) EqualTo(other *Fraction) bool {
 	return big.NewInt(0).Mul(f.Numerator, other.Denominator).
 		Cmp(big.NewInt(0).Mul(other.Numerator, f.Denominator)) == 0
 }
 
+// GreaterThan identifies whether the caller is greater than the other
 func (f *Fraction) GreaterThan(other *Fraction) bool {
 	return big.NewInt(0).Mul(f.Numerator, other.Denominator).
 		Cmp(big.NewInt(0).Mul(other.Numerator, f.Denominator)) > 0
 }
 
+// Multiply mul two fraction and returns a new fraction
 func (f *Fraction) Multiply(other *Fraction) *Fraction {
 	return NewFraction(
 		big.NewInt(0).Mul(f.Numerator, other.Numerator),
@@ -98,6 +108,7 @@ func (f *Fraction) Multiply(other *Fraction) *Fraction {
 	)
 }
 
+// Divide mul div two fraction and returns a new fraction
 func (f *Fraction) Divide(other *Fraction) *Fraction {
 	return NewFraction(
 		big.NewInt(0).Mul(f.Numerator, other.Denominator),
@@ -105,6 +116,7 @@ func (f *Fraction) Divide(other *Fraction) *Fraction {
 	)
 }
 
+// ToSignificant format output
 func (f *Fraction) ToSignificant(significantDigits uint, opt ...number.Option) string {
 	f.opts = number.New(number.WithGroupSeparator('\xA0'), number.WithRoundingMode(constants.RoundHalfUp))
 	f.opts.Apply(opt...)
@@ -118,6 +130,7 @@ func (f *Fraction) ToSignificant(significantDigits uint, opt ...number.Option) s
 	return number.DecimalFormat(d, f.opts)
 }
 
+// ToFixed format output
 func (f *Fraction) ToFixed(decimalPlaces uint, opt ...number.Option) string {
 	f.opts = number.New(number.WithGroupSeparator('\xA0'), number.WithRoundingMode(constants.RoundHalfUp))
 	f.opts.Apply(opt...)

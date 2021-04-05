@@ -17,14 +17,19 @@ var (
 		address: make(map[common.Address]map[common.Address]common.Address, 16),
 	}
 
+	// ErrInvalidLiquidity invalid liquidity
 	ErrInvalidLiquidity = fmt.Errorf("invalid liquidity")
-	ErrInvalidKLast     = fmt.Errorf("invalid kLast")
+	// ErrInvalidKLast invalid kLast
+	ErrInvalidKLast = fmt.Errorf("invalid kLast")
 )
 
+// TokenAmounts warps TokenAmount array
 type TokenAmounts [2]*TokenAmount
 
+// Tokens warps Token array
 type Tokens [2]*Token
 
+// NewTokenAmounts creates a TokenAmount
 func NewTokenAmounts(tokenAmountA, tokenAmountB *TokenAmount) (TokenAmounts, error) {
 	ok, err := tokenAmountA.Token.SortsBefore(tokenAmountB.Token)
 	if err != nil {
@@ -36,6 +41,7 @@ func NewTokenAmounts(tokenAmountA, tokenAmountB *TokenAmount) (TokenAmounts, err
 	return TokenAmounts{tokenAmountB, tokenAmountA}, nil
 }
 
+// PairAddressCache warps pair address cache
 type PairAddressCache struct {
 	lk *sync.RWMutex
 	// token0 address : token1 address : pair address
@@ -78,12 +84,14 @@ func getCreate2Address(addressA, addressB common.Address) common.Address {
 	return crypto.CreateAddress2(constants.FactoryAddress, salt, constants.InitCodeHash)
 }
 
+// Pair warps uniswap pair
 type Pair struct {
 	LiquidityToken *Token
 	// sorted tokens
 	TokenAmounts
 }
 
+// NewPair creates Pair
 func NewPair(tokenAmountA, tokenAmountB *TokenAmount) (*Pair, error) {
 	tokenAmounts, err := NewTokenAmounts(tokenAmountA, tokenAmountB)
 	if err != nil {
@@ -98,36 +106,29 @@ func NewPair(tokenAmountA, tokenAmountB *TokenAmount) (*Pair, error) {
 	return pair, err
 }
 
+// GetAddress returns a contract's address for a pair
 func (p *Pair) GetAddress() common.Address {
 	return _PairAddressCache.GetAddress(p.TokenAmounts[0].Token.Address, p.TokenAmounts[1].Token.Address)
 }
 
-/**
- * Returns true if the token is either token0 or token1
- * @param token to check
- */
+// InvolvesToken Returns true if the token is either token0 or token1
+// @param token to check
 func (p *Pair) InvolvesToken(token *Token) bool {
 	return token.Equals(p.TokenAmounts[0].Token) || token.Equals(p.TokenAmounts[1].Token)
 }
 
-/**
- * Returns the current mid price of the pair in terms of token0, i.e. the ratio of reserve1 to reserve0
- */
+// Token0Price Returns the current mid price of the pair in terms of token0, i.e. the ratio of reserve1 to reserve0
 func (p *Pair) Token0Price() *Price {
 	return NewPrice(p.Token0().Currency, p.Token1().Currency, p.TokenAmounts[0].Raw(), p.TokenAmounts[1].Raw())
 }
 
-/**
- * Returns the current mid price of the pair in terms of token1, i.e. the ratio of reserve0 to reserve1
- */
+// Token1Price Returns the current mid price of the pair in terms of token1, i.e. the ratio of reserve0 to reserve1
 func (p *Pair) Token1Price() *Price {
 	return NewPrice(p.Token1().Currency, p.Token0().Currency, p.TokenAmounts[1].Raw(), p.TokenAmounts[0].Raw())
 }
 
-/**
- * Return the price of the given token in terms of the other token in the pair.
- * @param token token to return price of
- */
+// PriceOf Returns the price of the given token in terms of the other token in the pair.
+// @param token token to return price of
 func (p *Pair) PriceOf(token *Token) (*Price, error) {
 	if !p.InvolvesToken(token) {
 		return nil, ErrDiffToken
@@ -139,29 +140,32 @@ func (p *Pair) PriceOf(token *Token) (*Price, error) {
 	return p.Token1Price(), nil
 }
 
-/**
- * Returns the chain ID of the tokens in the pair.
- */
+// ChainID Returns the chain ID of the tokens in the pair.
 func (p *Pair) ChainID() constants.ChainID {
 	return p.Token0().ChainID
 }
 
+// Token0 returns the first token in the pair
 func (p *Pair) Token0() *Token {
 	return p.TokenAmounts[0].Token
 }
 
+// Token1 returns the last token in the pair
 func (p *Pair) Token1() *Token {
 	return p.TokenAmounts[1].Token
 }
 
+// Reserve0 returns the first TokenAmount in the pair
 func (p *Pair) Reserve0() *TokenAmount {
 	return p.TokenAmounts[0]
 }
 
+// Reserve1 returns the last TokenAmount in the pair
 func (p *Pair) Reserve1() *TokenAmount {
 	return p.TokenAmounts[1]
 }
 
+// ReserveOf returns the TokenAmount that equals to the token
 func (p *Pair) ReserveOf(token *Token) (*TokenAmount, error) {
 	if !p.InvolvesToken(token) {
 		return nil, ErrDiffToken
@@ -173,6 +177,7 @@ func (p *Pair) ReserveOf(token *Token) (*TokenAmount, error) {
 	return p.Reserve1(), nil
 }
 
+// GetOutputAmount returns OutputAmount and a Pair for the InputAmout
 func (p *Pair) GetOutputAmount(inputAmount *TokenAmount) (*TokenAmount, *Pair, error) {
 	if !p.InvolvesToken(inputAmount.Token) {
 		return nil, nil, ErrDiffToken
@@ -222,6 +227,7 @@ func (p *Pair) GetOutputAmount(inputAmount *TokenAmount) (*TokenAmount, *Pair, e
 	return outputAmount, pair, nil
 }
 
+// GetInputAmount returns InputAmout and a Pair for the OutputAmount
 func (p *Pair) GetInputAmount(outputAmount *TokenAmount) (*TokenAmount, *Pair, error) {
 	if !p.InvolvesToken(outputAmount.Token) {
 		return nil, nil, ErrDiffToken
@@ -272,6 +278,7 @@ func (p *Pair) GetInputAmount(outputAmount *TokenAmount) (*TokenAmount, *Pair, e
 	return inputAmount, pair, nil
 }
 
+// GetLiquidityMinted returns liquidity minted TokenAmount
 func (p *Pair) GetLiquidityMinted(totalSupply, tokenAmountA, tokenAmountB *TokenAmount) (*TokenAmount, error) {
 	if !p.LiquidityToken.Equals(totalSupply.Token) {
 		return nil, ErrDiffToken
@@ -308,6 +315,7 @@ func (p *Pair) GetLiquidityMinted(totalSupply, tokenAmountA, tokenAmountB *Token
 	return NewTokenAmount(p.LiquidityToken, liquidity)
 }
 
+// GetLiquidityValue returns liquidity value TokenAmount
 func (p *Pair) GetLiquidityValue(token *Token, totalSupply, liquidity *TokenAmount, feeOn bool, kLast *big.Int) (*TokenAmount, error) {
 	if !p.InvolvesToken(token) || !p.LiquidityToken.Equals(totalSupply.Token) || !p.LiquidityToken.Equals(liquidity.Token) {
 		return nil, ErrDiffToken

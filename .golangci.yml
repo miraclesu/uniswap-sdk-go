@@ -92,6 +92,9 @@ linters:
   # - prealloc
 
 issues:
+  include:
+    # re enable go doc comments check
+    - EXC0002
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - path: _test\.go
