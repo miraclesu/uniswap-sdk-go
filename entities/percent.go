@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/miraclesu/uniswap-sdk-go/constants"
+	"github.com/miraclesu/uniswap-sdk-go/number"
 )
 
 var (
@@ -20,15 +21,10 @@ func NewPercent(num, deno *big.Int) *Percent {
 	}
 }
 
-// NOTE: format, rounding
-// TODO
-func (p *Percent) ToSignificant(significantDigits uint) string {
-	p.Multiply(Percent100)
-	return p.Fraction.ToSignificant(significantDigits)
+func (p *Percent) ToSignificant(significantDigits uint, opt ...number.Option) string {
+	return p.Multiply(Percent100).ToSignificant(significantDigits, opt...)
 }
 
-// TODO
-func (p *Percent) ToFixed(decimalPlaces uint) string {
-	p.Multiply(Percent100)
-	return p.Fraction.ToFixed(decimalPlaces)
+func (p *Percent) ToFixed(decimalPlaces uint, opt ...number.Option) string {
+	return p.Multiply(Percent100).ToFixed(decimalPlaces, opt...)
 }

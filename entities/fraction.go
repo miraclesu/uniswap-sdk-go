@@ -1,12 +1,12 @@
 package entities
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/shopspring/decimal"
 
 	"github.com/miraclesu/uniswap-sdk-go/constants"
+	"github.com/miraclesu/uniswap-sdk-go/number"
 )
 
 var (
@@ -16,6 +16,8 @@ var (
 type Fraction struct {
 	Numerator   *big.Int
 	Denominator *big.Int
+
+	opts *number.Options
 }
 
 func NewFraction(num, deno *big.Int) *Fraction {
@@ -103,15 +105,25 @@ func (f *Fraction) Divide(other *Fraction) *Fraction {
 	)
 }
 
-// NOTE: format, rounding
-// TODO
-func (f *Fraction) ToSignificant(significantDigits uint) string {
+func (f *Fraction) ToSignificant(significantDigits uint, opt ...number.Option) string {
+	f.opts = number.New(number.WithGroupSeparator('\xA0'), number.WithRoundingMode(constants.RoundHalfUp))
+	f.opts.Apply(opt...)
+	f.opts.Apply(number.WithRoundingPrecision(int(significantDigits) + 1))
+
 	d := decimal.NewFromBigInt(big.NewInt(0).Div(f.Numerator, f.Denominator), 0)
-	return fmt.Sprintf("%v", d)
+	if v, err := number.DecimalRound(d, f.opts); err == nil {
+		d = v
+	}
+
+	return number.DecimalFormat(d, f.opts)
 }
 
-// TODO
-func (f *Fraction) ToFixed(decimalPlaces uint) string {
-	d := big.NewInt(0).Div(f.Numerator, f.Denominator)
-	return fmt.Sprintf("%v", d)
+func (f *Fraction) ToFixed(decimalPlaces uint, opt ...number.Option) string {
+	f.opts = number.New(number.WithGroupSeparator('\xA0'), number.WithRoundingMode(constants.RoundHalfUp))
+	f.opts.Apply(opt...)
+	f.opts.Apply(number.WithDecimalPlaces(decimalPlaces))
+
+	d := decimal.NewFromBigInt(big.NewInt(0).Div(f.Numerator, f.Denominator), 0)
+
+	return number.DecimalFormat(d, f.opts)
 }
