@@ -97,6 +97,7 @@ issues:
     - path: _test\.go
       linters:
         - gomnd
+        - funlen
 
     - linters:
         - gomnd

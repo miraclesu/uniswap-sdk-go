@@ -22,6 +22,13 @@ const (
 	RoundUp
 )
 
+// Valid check this rounding mode is valid
+func (r Rounding) Valid() bool {
+	return r == RoundDown ||
+		r == RoundHalfUp ||
+		r == RoundUp
+}
+
 const (
 	Decimals18  = 18
 	Univ2Symbol = "UNI-V2"

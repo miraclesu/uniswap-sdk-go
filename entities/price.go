@@ -6,6 +6,7 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 
 	"github.com/miraclesu/uniswap-sdk-go/constants"
+	"github.com/miraclesu/uniswap-sdk-go/number"
 )
 
 type Price struct {
@@ -81,10 +82,10 @@ func (p *Price) Quote(currencyAmount *CurrencyAmount) (*CurrencyAmount, error) {
 	return NewEther(p.Fraction.Multiply(NewFraction(currencyAmount.Raw(), nil)).Quotient())
 }
 
-func (p *Price) ToSignificant(significantDigits uint) string {
-	return p.Adjusted().ToSignificant(significantDigits)
+func (p *Price) ToSignificant(significantDigits uint, opt ...number.Option) string {
+	return p.Adjusted().ToSignificant(significantDigits, opt...)
 }
 
-func (p *Price) ToFixed(decimalPlaces uint) string {
-	return p.Adjusted().ToFixed(decimalPlaces)
+func (p *Price) ToFixed(decimalPlaces uint, opt ...number.Option) string {
+	return p.Adjusted().ToFixed(decimalPlaces, opt...)
 }
