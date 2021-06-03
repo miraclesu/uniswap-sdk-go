@@ -10,19 +10,17 @@ var (
 	ErrInvalidSlippageTolerance = fmt.Errorf("invalid slippage tolerance")
 )
 
-/**
- * Represents a trade executed against a list of pairs.
- * Does not account for slippage, i.e. trades that front run this trade and move the price.
- */
+// Trade Represents a trade executed against a list of pairs.
+// Does not account for slippage, i.e. trades that front run this trade and move the price.
 type Trade struct {
 	/**
 	 * The route of the trade, i.e. which pairs the trade goes through.
 	 */
-	route *Route
+	Route *Route
 	/**
 	 * The type of the trade, either exact in or exact out.
 	 */
-	tradeType constants.TradeType
+	TradeType constants.TradeType
 	/**
 	 * The input amount for the trade assuming no slippage.
 	 */
@@ -34,15 +32,15 @@ type Trade struct {
 	/**
 	 * The price expressed in terms of output amount/input amount.
 	 */
-	executionPrice *Price
+	ExecutionPrice *Price
 	/**
 	 * The mid price after the trade executes assuming no slippage.
 	 */
-	nextMidPrice *Price
+	NextMidPrice *Price
 	/**
 	 * The percent difference between the mid price before the trade and the trade execution price.
 	 */
-	priceImpact *Percent
+	PriceImpact *Percent
 }
 
 func (t *Trade) InputAmount() *TokenAmount {
@@ -131,13 +129,13 @@ func NewTrade(route *Route, amount *TokenAmount, tradeType constants.TradeType) 
 	}
 	price := NewPrice(inputAmount.Currency, outputAmount.Currency, inputAmount.Raw(), outputAmount.Raw())
 	return &Trade{
-		route:          route,
-		tradeType:      tradeType,
+		Route:          route,
+		TradeType:      tradeType,
 		inputAmount:    inputAmount,
 		outputAmount:   outputAmount,
-		executionPrice: price,
-		nextMidPrice:   nextMidPrice,
-		priceImpact:    computePriceImpact(route.MidPrice, inputAmount, outputAmount),
+		ExecutionPrice: price,
+		NextMidPrice:   nextMidPrice,
+		PriceImpact:    computePriceImpact(route.MidPrice, inputAmount, outputAmount),
 	}, nil
 }
 
@@ -164,7 +162,7 @@ func (t *Trade) MinimumAmountOut(slippageTolerance *Percent) (*TokenAmount, erro
 		return nil, ErrInvalidSlippageTolerance
 	}
 
-	if t.tradeType == constants.ExactOutput {
+	if t.TradeType == constants.ExactOutput {
 		return t.outputAmount, nil
 	}
 
@@ -184,7 +182,7 @@ func (t *Trade) MaximumAmountIn(slippageTolerance *Percent) (*TokenAmount, error
 		return nil, ErrInvalidSlippageTolerance
 	}
 
-	if t.tradeType == constants.ExactInput {
+	if t.TradeType == constants.ExactInput {
 		return t.inputAmount, nil
 	}
 

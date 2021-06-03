@@ -151,8 +151,8 @@ func TestTrade(t *testing.T) {
 					output int
 				}{
 					{2, len(result)},
-					{1, len(result[0].route.Pairs)},
-					{2, len(result[1].route.Pairs)},
+					{1, len(result[0].Route.Pairs)},
+					{2, len(result[1].Route.Pairs)},
 				}
 				for i, test := range tests {
 					if test.expect != test.output {
@@ -165,8 +165,8 @@ func TestTrade(t *testing.T) {
 					expect []*Token
 					output []*Token
 				}{
-					{[]*Token{token0, token2}, result[0].route.Path},
-					{[]*Token{token0, token1, token2}, result[1].route.Path},
+					{[]*Token{token0, token2}, result[0].Route.Path},
+					{[]*Token{token0, token1, token2}, result[1].Route.Path},
 				}
 				for i, test := range tests {
 					if len(test.expect) != len(test.output) {
@@ -227,7 +227,7 @@ func TestTrade(t *testing.T) {
 					output int
 				}{
 					{1, len(result)},
-					{1, len(result[0].route.Pairs)},
+					{1, len(result[0].Route.Pairs)},
 				}
 				for i, test := range tests {
 					if test.expect != test.output {
@@ -240,7 +240,7 @@ func TestTrade(t *testing.T) {
 					expect []*Token
 					output []*Token
 				}{
-					{[]*Token{token0, token2}, result[0].route.Path},
+					{[]*Token{token0, token2}, result[0].Route.Path},
 				}
 				for i, test := range tests {
 					if len(test.expect) != len(test.output) {
@@ -266,7 +266,7 @@ func TestTrade(t *testing.T) {
 					output int
 				}{
 					{1, len(result)},
-					{1, len(result[0].route.Pairs)},
+					{1, len(result[0].Route.Pairs)},
 				}
 				for i, test := range tests {
 					if test.expect != test.output {
@@ -279,7 +279,7 @@ func TestTrade(t *testing.T) {
 					expect []*Token
 					output []*Token
 				}{
-					{[]*Token{token0, token2}, result[0].route.Path},
+					{[]*Token{token0, token2}, result[0].Route.Path},
 				}
 				for i, test := range tests {
 					if len(test.expect) != len(test.output) {
@@ -358,8 +358,8 @@ func TestTrade(t *testing.T) {
 					expect []*Token
 					output []*Token
 				}{
-					{[]*Token{tokenETHER, token0, token1, token3}, result[0].route.Path},
-					{[]*Token{tokenETHER, token0, token3}, result[1].route.Path},
+					{[]*Token{tokenETHER, token0, token1, token3}, result[0].Route.Path},
+					{[]*Token{tokenETHER, token0, token3}, result[1].Route.Path},
 				}
 				for i, test := range tests {
 					if len(test.expect) != len(test.output) {
@@ -407,8 +407,8 @@ func TestTrade(t *testing.T) {
 					expect []*Token
 					output []*Token
 				}{
-					{[]*Token{token3, token0, tokenETHER}, result[0].route.Path},
-					{[]*Token{token3, token1, token0, tokenETHER}, result[1].route.Path},
+					{[]*Token{token3, token0, tokenETHER}, result[0].Route.Path},
+					{[]*Token{token3, token1, token0, tokenETHER}, result[1].Route.Path},
 				}
 				for i, test := range tests {
 					if len(test.expect) != len(test.output) {
@@ -647,8 +647,8 @@ func TestTrade(t *testing.T) {
 					output int
 				}{
 					{2, len(result)},
-					{1, len(result[0].route.Pairs)},
-					{2, len(result[1].route.Pairs)},
+					{1, len(result[0].Route.Pairs)},
+					{2, len(result[1].Route.Pairs)},
 				}
 				for i, test := range tests {
 					if test.expect != test.output {
@@ -661,8 +661,8 @@ func TestTrade(t *testing.T) {
 					expect []*Token
 					output []*Token
 				}{
-					{[]*Token{token0, token2}, result[0].route.Path},
-					{[]*Token{token0, token1, token2}, result[1].route.Path},
+					{[]*Token{token0, token2}, result[0].Route.Path},
+					{[]*Token{token0, token1, token2}, result[1].Route.Path},
 				}
 				for i, test := range tests {
 					if len(test.expect) != len(test.output) {
@@ -722,7 +722,7 @@ func TestTrade(t *testing.T) {
 					output int
 				}{
 					{1, len(result)},
-					{1, len(result[0].route.Pairs)},
+					{1, len(result[0].Route.Pairs)},
 				}
 				for i, test := range tests {
 					if test.expect != test.output {
@@ -735,7 +735,7 @@ func TestTrade(t *testing.T) {
 					expect []*Token
 					output []*Token
 				}{
-					{[]*Token{token0, token2}, result[0].route.Path},
+					{[]*Token{token0, token2}, result[0].Route.Path},
 				}
 				for i, test := range tests {
 					if len(test.expect) != len(test.output) {
@@ -832,8 +832,8 @@ func TestTrade(t *testing.T) {
 					expect []*Token
 					output []*Token
 				}{
-					{[]*Token{tokenETHER, token0, token1, token3}, result[0].route.Path},
-					{[]*Token{tokenETHER, token0, token3}, result[1].route.Path},
+					{[]*Token{tokenETHER, token0, token1, token3}, result[0].Route.Path},
+					{[]*Token{tokenETHER, token0, token3}, result[1].Route.Path},
 				}
 				for i, test := range tests {
 					if len(test.expect) != len(test.output) {
@@ -881,8 +881,8 @@ func TestTrade(t *testing.T) {
 					expect []*Token
 					output []*Token
 				}{
-					{[]*Token{token3, token0, tokenETHER}, result[0].route.Path},
-					{[]*Token{token3, token1, token0, tokenETHER}, result[1].route.Path},
+					{[]*Token{token3, token0, tokenETHER}, result[0].Route.Path},
+					{[]*Token{token3, token1, token0, tokenETHER}, result[1].Route.Path},
 				}
 				for i, test := range tests {
 					if len(test.expect) != len(test.output) {
