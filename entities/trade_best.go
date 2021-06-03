@@ -74,14 +74,14 @@ func TradeComparator(a, b *Trade) int {
 	}
 
 	// consider lowest slippage next, since these are less likely to fail
-	if a.priceImpact.LessThan(b.priceImpact.Fraction) {
+	if a.PriceImpact.LessThan(b.PriceImpact.Fraction) {
 		return -1
 	}
-	if a.priceImpact.GreaterThan(b.priceImpact.Fraction) {
+	if a.PriceImpact.GreaterThan(b.PriceImpact.Fraction) {
 		return 1
 	}
 	// finally consider the number of hops since each hop costs gas
-	return len(a.route.Path) - len(b.route.Path)
+	return len(a.Route.Path) - len(b.Route.Path)
 }
 
 // given an array of items sorted by `comparator`, insert an item into its sort index and constrain the size to
