@@ -190,3 +190,23 @@ func TestDivide(t *testing.T) {
 		}
 	}
 }
+
+func TestToSignificant(t *testing.T) {
+	var tests = []struct {
+		Input  [2]int64
+		Output string
+		Format uint
+	}{
+		{[2]int64{30, 10}, "3", 0},
+		{[2]int64{4, 10}, "0.4", 0},
+		{[2]int64{126, 100}, "1.26", 1},
+		{[2]int64{1, 1000}, "0.001", 2},
+	}
+	for i, test := range tests {
+		output := NewFraction(big.NewInt(test.Input[0]), big.NewInt(test.Input[1])).ToSignificant(test.Format)
+		expect := test.Output
+		if !(output == expect) {
+			t.Errorf("test #%d: failed to match when it should (%+v != %+v)", i, output, expect)
+		}
+	}
+}

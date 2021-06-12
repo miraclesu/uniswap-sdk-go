@@ -122,7 +122,7 @@ func (f *Fraction) ToSignificant(significantDigits uint, opt ...number.Option) s
 	f.opts.Apply(opt...)
 	f.opts.Apply(number.WithRoundingPrecision(int(significantDigits) + 1))
 
-	d := decimal.NewFromBigInt(big.NewInt(0).Div(f.Numerator, f.Denominator), 0)
+	d := decimal.NewFromBigInt(f.Numerator, 0).Div(decimal.NewFromBigInt(f.Denominator, 0))
 	if v, err := number.DecimalRound(d, f.opts); err == nil {
 		d = v
 	}
