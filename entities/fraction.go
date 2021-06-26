@@ -120,7 +120,7 @@ func (f *Fraction) Divide(other *Fraction) *Fraction {
 func (f *Fraction) ToSignificant(significantDigits uint, opt ...number.Option) string {
 	f.opts = number.New(number.WithGroupSeparator('\xA0'), number.WithRoundingMode(constants.RoundHalfUp))
 	f.opts.Apply(opt...)
-	f.opts.Apply(number.WithRoundingPrecision(int(significantDigits) + 1))
+	f.opts.Apply(number.WithRoundingPrecision(int(significantDigits)))
 
 	d := decimal.NewFromBigInt(f.Numerator, 0).Div(decimal.NewFromBigInt(f.Denominator, 0))
 	if v, err := number.DecimalRound(d, f.opts); err == nil {
