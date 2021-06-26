@@ -745,9 +745,10 @@ func TestDecimalFormat(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
+	for i, tt := range tests {
 		if got := DecimalFormat(tt.args.d, tt.args.opts); got != tt.want {
-			t.Errorf("DecimalFormat() = %v, want %v", got, tt.want)
+			t.Errorf("DecimalFormat([%d]{d:[%+v], opts:[%+v]}) got = %v, want %v", i, tt.args.d.String(), tt.args.opts,
+				got, tt.want)
 		}
 	}
 }
@@ -771,9 +772,9 @@ func TestDecimalRound(t *testing.T) {
 		{
 			args: args{
 				d:    mustNewFromString("0.00001000"),
-				opts: New(WithRoundingPrecision(2), WithRoundingMode(constants.RoundUp)),
+				opts: New(WithRoundingPrecision(4), WithRoundingMode(constants.RoundUp)),
 			},
-			want: mustNewFromString("0.01"),
+			want: mustNewFromString("0.0001"),
 		},
 		{
 			args: args{
@@ -806,9 +807,9 @@ func TestDecimalRound(t *testing.T) {
 		{
 			args: args{
 				d:    mustNewFromString("-0.05"),
-				opts: New(WithRoundingPrecision(0), WithRoundingMode(constants.RoundUp)),
+				opts: New(WithRoundingPrecision(1), WithRoundingMode(constants.RoundUp)),
 			},
-			want: mustNewFromString("-1"),
+			want: mustNewFromString("-0.1"),
 		},
 		{
 			args: args{
@@ -1735,14 +1736,15 @@ func TestDecimalRound(t *testing.T) {
 			want: mustNewFromString("2988347090930431122495200201632971168964831173901728"),
 		},
 	}
-	for _, tt := range tests {
+	for i, tt := range tests {
 		got, err := DecimalRound(tt.args.d, tt.args.opts)
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		if got.String() != tt.want.String() {
-			t.Errorf("DecimalRound() got = %v, want %v", got.String(), tt.want.String())
+			t.Errorf("DecimalRound([%d]{d:[%+v], opts:[%+v]}) got = %v, want %v", i, tt.args.d.String(), tt.args.opts,
+				got.String(), tt.want.String())
 		}
 	}
 }
