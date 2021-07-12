@@ -31,8 +31,10 @@ func NewPriceFromRoute(route *Route) (*Price, error) {
 	}
 
 	price := prices[0]
+	var err error
 	for i := 1; i < length; i++ {
-		if err := price.Multiply(prices[i]); err != nil {
+		price, err = price.Multiply(prices[i])
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -51,26 +53,24 @@ func NewPrice(baseCurrency, quoteCurrency *Currency, denominator, numerator *big
 }
 
 func (p *Price) Raw() *Fraction {
-	return p.Fraction
+	return NewFraction(p.Fraction.Numerator, p.Fraction.Denominator)
 }
 
 func (p *Price) Adjusted() *Fraction {
-	p.Fraction.Multiply(p.Scalar)
-	return p.Fraction
+	return p.Fraction.Multiply(p.Scalar)
 }
 
 func (p *Price) Invert() {
 	p.BaseCurrency, p.QuoteCurrency = p.QuoteCurrency, p.BaseCurrency
 }
 
-func (p *Price) Multiply(other *Price) error {
+func (p *Price) Multiply(other *Price) (*Price, error) {
 	if !p.QuoteCurrency.Equals(other.BaseCurrency) {
-		return ErrInvalidCurrency
+		return nil, ErrInvalidCurrency
 	}
 
-	p.Fraction.Multiply(other.Fraction)
-	p.QuoteCurrency = other.QuoteCurrency
-	return nil
+	fraction := p.Fraction.Multiply(other.Fraction)
+	return NewPrice(p.BaseCurrency, other.QuoteCurrency, fraction.Denominator, fraction.Numerator), nil
 }
 
 // performs floor division on overflow
