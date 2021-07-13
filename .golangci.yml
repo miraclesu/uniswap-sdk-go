@@ -24,13 +24,15 @@ linters-settings:
     min-complexity: 15
   goimports:
     local-prefixes: github.com/miraclesu/uniswap-sdk-go
-  golint:
-    min-confidence: 0.8
   gomnd:
     settings:
       mnd:
         # don't include the "operation" and "assign"
-        checks: argument,case,condition,return
+        checks:
+          - argument
+          - case
+          - condition
+          - return
   govet:
     check-shadowing: true
     settings:
@@ -62,7 +64,7 @@ linters:
     - gocyclo
     - gofmt
     - goimports
-    - golint
+    #    - golint # deprecated (since v1.41.0) due to: The repository of the linter has been archived by the owner.  Replaced by revive.
     - gomnd
     - goprintffuncname
     - gosec
@@ -73,7 +75,7 @@ linters:
     - misspell
     - nakedret
     - rowserrcheck
-    - scopelint
+    #    - scopelint # deprecated (since v1.39.0) due to: The repository of the linter has been deprecated by the owner.  Replaced by exportloopref.
     - staticcheck
     - structcheck
     - stylecheck
@@ -83,6 +85,8 @@ linters:
     - unused
     - varcheck
     - whitespace
+    - revive # confidence default: 0.8
+    - exportloopref
 
   # don't enable:
   # - gochecknoglobals
@@ -93,8 +97,8 @@ linters:
 
 issues:
   include:
-    # re enable go doc comments check
-    # - EXC0002
+  # re enable go doc comments check
+  # - EXC0002
   # Excluding configuration per-path, per-linter, per-text and per-source
   exclude-rules:
     - path: _test\.go
@@ -113,6 +117,10 @@ issues:
     - linters:
         - gocyclo
       source: "BestTradeExact"
+
+    - linters:
+        - revive
+      text: "method parameter kLast should be last" # fix: entities/pair.go:319:97 and entities/pair.go:342:72
 
 run:
   skip-dirs:

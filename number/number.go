@@ -65,7 +65,7 @@ func DecimalFormat(d decimal.Decimal, opts *Options) (formatted string) {
 
 func formatGroup(num string, groupSize, secondaryGroupSize uint, groupSeparator byte) string {
 	var buf = new(bytes.Buffer)
-	var pos uint = 0
+	var pos uint
 	iLen := uint(len(num))
 	if groupSize > 1 {
 		if groupSize < iLen {
@@ -96,7 +96,7 @@ func formatGroup(num string, groupSize, secondaryGroupSize uint, groupSeparator 
 
 func formatFraction(num string, fractionGroupSize uint, fractionGroupSeparator byte) string {
 	var buf = new(bytes.Buffer)
-	var pos uint = 0
+	var pos uint
 	fLen := uint(len(num))
 	if fractionGroupSize == 0 {
 		buf.WriteString(num)
