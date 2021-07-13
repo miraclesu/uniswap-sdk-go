@@ -111,11 +111,11 @@ func NewTrade(route *Route, amount *TokenAmount, tradeType constants.TradeType) 
 		}
 	}
 
-	route, err := NewRoute(nextPairs, route.Input, nil)
+	nextRoute, err := NewRoute(nextPairs, route.Input, nil)
 	if err != nil {
 		return nil, err
 	}
-	nextMidPrice, err := NewPriceFromRoute(route)
+	nextMidPrice, err := NewPriceFromRoute(nextRoute)
 	if err != nil {
 		return nil, err
 	}
