@@ -60,8 +60,8 @@ func (p *Price) Adjusted() *Fraction {
 	return p.Fraction.Multiply(p.Scalar)
 }
 
-func (p *Price) Invert() {
-	p.BaseCurrency, p.QuoteCurrency = p.QuoteCurrency, p.BaseCurrency
+func (p *Price) Invert() *Price {
+	return NewPrice(p.QuoteCurrency, p.BaseCurrency, p.Numerator, p.Denominator)
 }
 
 func (p *Price) Multiply(other *Price) (*Price, error) {
