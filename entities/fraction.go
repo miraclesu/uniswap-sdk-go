@@ -136,7 +136,6 @@ func (f *Fraction) ToFixed(decimalPlaces uint, opt ...number.Option) string {
 	f.opts.Apply(opt...)
 	f.opts.Apply(number.WithDecimalPlaces(decimalPlaces))
 
-	d := decimal.NewFromBigInt(big.NewInt(0).Div(f.Numerator, f.Denominator), 0)
-
+	d := decimal.NewFromBigInt(f.Numerator, 0).Div(decimal.NewFromBigInt(f.Denominator, 0))
 	return number.DecimalFormat(d, f.opts)
 }
