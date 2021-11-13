@@ -1,7 +1,9 @@
 package entities
 
 import (
+	"fmt"
 	"math/big"
+	"strings"
 
 	"github.com/shopspring/decimal"
 
@@ -9,10 +11,8 @@ import (
 	"github.com/miraclesu/uniswap-sdk-go/number"
 )
 
-var (
-	// ZeroFraction zero fraction instance
-	ZeroFraction = NewFraction(constants.Zero, nil)
-)
+// ZeroFraction zero fraction instance
+var ZeroFraction = NewFraction(constants.Zero, nil)
 
 // Fraction warps math franction
 type Fraction struct {
@@ -120,14 +120,30 @@ func (f *Fraction) Divide(other *Fraction) *Fraction {
 func (f *Fraction) ToSignificant(significantDigits uint, opt ...number.Option) string {
 	f.opts = number.New(number.WithGroupSeparator('\xA0'), number.WithRoundingMode(constants.RoundHalfUp))
 	f.opts.Apply(opt...)
-	f.opts.Apply(number.WithRoundingPrecision(int(significantDigits)))
 
 	d := decimal.NewFromBigInt(f.Numerator, 0).Div(decimal.NewFromBigInt(f.Denominator, 0))
+	if d.LessThan(decimal.New(1, 0)) {
+		significantDigits += countZerosAfterDecimalPoint(d.String())
+	}
+	f.opts.Apply(number.WithRoundingPrecision(int(significantDigits)))
 	if v, err := number.DecimalRound(d, f.opts); err == nil {
 		d = v
 	}
-
+	fmt.Println(d.String())
 	return number.DecimalFormat(d, f.opts)
+}
+
+func countZerosAfterDecimalPoint(d string) uint {
+	grp := strings.Split(d, ".")
+	if len(grp) != 2 {
+		return 0
+	}
+	for i, v := range grp[1] {
+		if v != '0' {
+			return uint(i)
+		}
+	}
+	return 0
 }
 
 // ToFixed format output
