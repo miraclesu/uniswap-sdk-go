@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"fmt"
 	"math/big"
 	"strings"
 
@@ -13,6 +12,8 @@ import (
 
 // ZeroFraction zero fraction instance
 var ZeroFraction = NewFraction(constants.Zero, nil)
+
+const decimalSplitLength = 2
 
 // Fraction warps math franction
 type Fraction struct {
@@ -129,13 +130,12 @@ func (f *Fraction) ToSignificant(significantDigits uint, opt ...number.Option) s
 	if v, err := number.DecimalRound(d, f.opts); err == nil {
 		d = v
 	}
-	fmt.Println(d.String())
 	return number.DecimalFormat(d, f.opts)
 }
 
 func countZerosAfterDecimalPoint(d string) uint {
 	grp := strings.Split(d, ".")
-	if len(grp) != 2 {
+	if len(grp) != decimalSplitLength {
 		return 0
 	}
 	for i, v := range grp[1] {
