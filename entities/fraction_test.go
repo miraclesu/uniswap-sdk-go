@@ -6,7 +6,7 @@ import (
 )
 
 func TestQuotient(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [2]int64
 		Output int64
 	}{
@@ -23,7 +23,7 @@ func TestQuotient(t *testing.T) {
 }
 
 func TestRemainder(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [2]int64
 		Output [2]int64
 	}{
@@ -41,7 +41,7 @@ func TestRemainder(t *testing.T) {
 }
 
 func TestInvert(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [2]int64
 		Output [2]int64
 	}{
@@ -56,7 +56,7 @@ func TestInvert(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [4]int64
 		Output [2]int64
 	}{
@@ -75,7 +75,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestSubtract(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [4]int64
 		Output [2]int64
 	}{
@@ -94,7 +94,7 @@ func TestSubtract(t *testing.T) {
 }
 
 func TestLessThan(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [4]int64
 		Output bool
 	}{
@@ -112,7 +112,7 @@ func TestLessThan(t *testing.T) {
 }
 
 func TestEqualTo(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [4]int64
 		Output bool
 	}{
@@ -131,7 +131,7 @@ func TestEqualTo(t *testing.T) {
 }
 
 func TestGreaterThan(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [4]int64
 		Output bool
 	}{
@@ -151,7 +151,7 @@ func TestGreaterThan(t *testing.T) {
 }
 
 func TestMultiply(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [4]int64
 		Output [2]int64
 	}{
@@ -171,7 +171,7 @@ func TestMultiply(t *testing.T) {
 }
 
 func TestDivide(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [4]int64
 		Output [2]int64
 	}{
@@ -192,7 +192,7 @@ func TestDivide(t *testing.T) {
 }
 
 func TestToSignificant(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		Input  [2]int64
 		Output string
 		Format uint
@@ -203,6 +203,7 @@ func TestToSignificant(t *testing.T) {
 		{[2]int64{126, 100}, "1.26", 2},
 		{[2]int64{124, 100}, "1.2", 1},
 		{[2]int64{124, 100}, "1.24", 2},
+		{[2]int64{125, 1000000000}, "0.00000013", 2},
 	}
 	for i, test := range tests {
 		output := NewFraction(big.NewInt(test.Input[0]), big.NewInt(test.Input[1])).ToSignificant(test.Format)
